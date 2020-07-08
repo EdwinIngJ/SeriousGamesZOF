@@ -1,4 +1,4 @@
-# Z-Game
+# Z-Game Team Athi 2
 
 BWSI-SG with AI Zombie Game.
 
