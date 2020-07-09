@@ -97,13 +97,16 @@ class City:
 
     def _init_neighborhood_threats(self):
         # Add 10 dead in a random location
-        dead_loc = random.choice(self.neighborhoods)
+        dead_loc_index = random.choice(range(len(self.neighborhoods)))
+        dead_loc = self.neighborhoods[dead_loc_index]
         dead_npcs = []
         for _ in range(10):
             dead_npc = NPC()
             dead_npc.change_dead_state(NPC_STATES_DEAD.DEAD)
             dead_npcs.append(dead_npc)
         dead_loc.add_NPCs(dead_npcs)
+        dead_loc.orig_dead += 10
+
         # Add 1 zombie in a random location
         zombie_loc = random.choice(self.neighborhoods)
         zombie_npc = NPC()
