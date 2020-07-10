@@ -47,10 +47,10 @@ class DEPLOYMENTS(IntEnum):
             return DEPLOYMENTS.QUARANTINE_OPEN.value
         elif deployment.upper() == 'QUARANTINE_FENCED':
             return DEPLOYMENTS.QUARANTINE_FENCED.value
-        elif deployment.upper() == 'BITE_CENTER_FDA':
-            return DEPLOYMENTS.BITE_CENTER_FDA.value
-        elif deployment.upper() == 'BITE_CENTER_EXP':
-            return DEPLOYMENTS.BITE_CENTER_EXP.value
+        elif deployment.upper() == 'BITE_CENTER_DISINFECT':
+            return DEPLOYMENTS.BITE_CENTER_DISINFECT.value
+        elif deployment.upper() == 'BITE_CENTER_AMPUTATE':
+            return DEPLOYMENTS.BITE_CENTER_AMPUTATE.value
         elif deployment.upper() == 'Z_CURE_CENTER_FDA':
             return DEPLOYMENTS.Z_CURE_CENTER_FDA.value
         elif deployment.upper() == 'Z_CURE_CENTER_EXP':
@@ -103,10 +103,10 @@ class DEPLOYMENTS(IntEnum):
             return DEPLOYMENTS.QUARANTINE_OPEN.name
         elif deployment.upper() == 'QUARANTINE_FENCED':
             return DEPLOYMENTS.QUARANTINE_FENCED.name
-        elif deployment.upper() == 'BITE_CENTER_FDA':
-            return DEPLOYMENTS.BITE_CENTER_FDA.name
-        elif deployment.upper() == 'BITE_CENTER_EXP':
-            return DEPLOYMENTS.BITE_CENTER_EXP.name
+        elif deployment.upper() == 'BITE_CENTER_DISINFECT':
+            return DEPLOYMENTS.BITE_CENTER_DISINFECT.name
+        elif deployment.upper() == 'BITE_CENTER_AMPUTATE':
+            return DEPLOYMENTS.BITE_CENTER_AMPUTATE.name
         elif deployment.upper() == 'Z_CURE_CENTER_FDA':
             return DEPLOYMENTS.Z_CURE_CENTER_FDA.name
         elif deployment.upper() == 'Z_CURE_CENTER_EXP':
