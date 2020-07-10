@@ -27,7 +27,7 @@ class LEVELS(IntEnum):
             return LEVELS.MANY.value
         else:
             warnings.warn('Tried to convert string ({}) to LEVELS enum and failed; returned NONE'.format(level))
-            return LEVELS.STAY.value
+            return LEVELS.NONE.value
 
     @staticmethod
     def get_name_from_string(level):
@@ -39,4 +39,4 @@ class LEVELS(IntEnum):
             return LEVELS.MANY.name
         else:
             warnings.warn('Tried to convert string ({}) to LEVELS enum and failed; returned NONE'.format(level))
-            return LEVELS.STAY.name
+            return LEVELS.NONE.name
