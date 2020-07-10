@@ -42,14 +42,36 @@ class ZGame:
         self.env.render(mode='human')
         for turn in range(self.max_turns):
             self.env.print_player_action_selections()
+                                                       
             print('Input Action - Location 1:')
-            location_1 = int(input())
+            location_1 = input()
+            print(len(LOCATIONS))
+            while not(location_1.isdigit()) or int(location_1) not in range(0,len(LOCATIONS)):
+                print('Location must be a value between 0-'+str(len(LOCATIONS)-1)+'. Please enter a valid location.')
+                location_1 = input()
+            location_1 = int(location_1)
+            
             print('Input Action - Deployment 1:')
-            deployment_1 = int(input())
+            deployment_1 = input()
+            while not(deployment_1.isdigit()) or int(deployment_1) not in range(0,len(DEPLOYMENTS)):
+                print('Deployment must be a value between 0-'+str(len(DEPLOYMENTS)-1)+'. Please enter a valid deployment number:')
+                deployment_1 = input()
+            deployment_1 = int(deployment_1)
+            
             print('Input Action - Location 2:')
-            location_2 = int(input())
+            location_2 = input()
+            while not(location_2.isdigit()) or int(location_2) not in range(0,len(LOCATIONS)):
+                print('Location must be a value between 0-'+str(len(LOCATIONS)-1)+'. Please enter a valid location:')
+                location_2 = input()
+            location_2 = int(location_2)
+            
             print('Input Action - Deployment 2:')
-            deployment_2 = int(input())
+            deployment_2 = input()
+            while not(deployment_2.isdigit()) or int(deployment_2) not in range(0,len(DEPLOYMENTS)):
+                print('Deployment must be a value between 0-'+str(len(DEPLOYMENTS)-1)+'. Please enter a valid deployment number:')
+                deployment_2 = input()
+            deployment_2 = int(deployment_2)
+                
             actions = self.env.encode_raw_action(location_1=LOCATIONS(location_1),
                                                  deployment_1=DEPLOYMENTS(deployment_1),
                                                  location_2=LOCATIONS(location_2),
