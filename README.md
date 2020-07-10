@@ -38,7 +38,7 @@ from an integrated development environment (IDE). The entry points for the code 
 For example, to run basic tests, use the following command. NOTE: this command prints the help commands
 for the CLI options. It will show you the usage and options for the CLI.
 ```
-python RUN_Basic.Tests.py -h
+python RUN_Basic_Tests.py -h
 ```
 
 More details about the game and this software implementation will be provided over time via lectures.
