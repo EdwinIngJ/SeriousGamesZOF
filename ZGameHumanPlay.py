@@ -45,7 +45,6 @@ class ZGame:
                                                        
             print('Input Action - Location 1:')
             location_1 = input()
-            print(len(LOCATIONS))
             while not(location_1.isdigit()) or int(location_1) not in range(0,len(LOCATIONS)):
                 print('Location must be a value between 0-'+str(len(LOCATIONS)-1)+'. Please enter a valid location.')
                 location_1 = input()
