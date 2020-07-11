@@ -6,7 +6,8 @@ from gym_zgame.envs.model.NPC import NPC
 
 class Neighborhood:
 
-    def __init__(self, id, location, adj_locations, num_init_npcs):
+    def __init__(self, id, location, adj_locations, num_init_npcs,developer_mode=False):
+        self.developer_mode = developer_mode
         self.id = id
         self.location = location
         self.NPCs = []
