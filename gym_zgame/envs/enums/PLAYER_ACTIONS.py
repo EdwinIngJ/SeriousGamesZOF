@@ -153,15 +153,15 @@ class DEPLOYMENTS(IntEnum):
 
 
 class LOCATIONS(IntEnum):
-    CENTER = 0
+    CENTER = 4
     N = 1
-    S = 2
-    E = 3
-    W = 4
-    NE = 5
-    NW = 6
-    SE = 7
-    SW = 8
+    S = 7
+    E = 5
+    W = 3
+    NE = 2
+    NW = 0
+    SE = 8
+    SW = 6
 
     @staticmethod
     def print():
