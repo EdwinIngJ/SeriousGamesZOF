@@ -11,12 +11,13 @@ class ZGame(gym.Env):
 
     def __init__(self):
         # Tunable parameters
-        self.play_type = PLAY_TYPE.MACHINE  # Defaults only, set in main classes
+        self.developer_mode = False # Defaults only, set in main classes
+        self.play_type = PLAY_TYPE.MACHINE  
         self.render_mode = 'machine'
         # CONSTANTS
         self.MAX_TURNS = 14
         # Main parameters
-        self.city = City()
+        self.city = City(developer_mode=self.developer_mode)
         self.total_score = 0
         self.turn = 0
         self.done = False
@@ -29,7 +30,7 @@ class ZGame(gym.Env):
         self.reset()
 
     def reset(self):
-        self.city = City()
+        self.city = City(developer_mode=self.developer_mode)
         self.total_score = 0
         self.turn = 0
         self.done = False
