@@ -103,7 +103,7 @@ class Neighborhood:
         self.deployments.extend(deployments)
 
     def destroy_deployments_by_type(self, dep_types):
-        updated_deps = [dep for dep in self.deployments if dep not in dep_types]
+        self.deployments = [dep for dep in self.deployments if dep not in dep_types]
 
     def update_summary_stats(self):
         self.num_npcs = len(self.NPCs)

@@ -61,12 +61,15 @@ class NPC:
 
     def change_dead_state(self, npc_states_dead):
         self.state_dead = npc_states_dead
+        self.update_states()
 
     def change_zombie_state(self, npc_states_zombie):
         self.state_zombie = npc_states_zombie
+        self.update_states()
 
     def change_flu_state(self, npc_states_flu):
         self.state_flu = npc_states_flu
+        self.update_states()
 
     def add_to_bag(self, npc_action):
         self.bag.append(npc_action)

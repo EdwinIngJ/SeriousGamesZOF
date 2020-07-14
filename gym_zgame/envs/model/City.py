@@ -124,8 +124,8 @@ class City:
         og_dead = 0
         for nbh in self.neighborhoods:
             nbh_stats = nbh.get_data()
-            og_alive += nbh_stats.get('num_alive', 0)
-            og_dead += nbh_stats.get('num_dead', 0)
+            og_alive += nbh_stats.get('original_alive', 0)
+            og_dead += nbh_stats.get('original_dead', 0)
         return og_alive, og_dead
 
     def update_summary_stats(self):
