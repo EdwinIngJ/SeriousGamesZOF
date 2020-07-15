@@ -113,11 +113,13 @@ class City:
         zombie_npc = NPC()
         zombie_npc.change_zombie_state(NPC_STATES_ZOMBIE.ZOMBIE)
         zombie_loc.add_NPC(zombie_npc)
+        zombie_loc.orig_alive += 1
         # Add 1 flue incubating at each location
         for nbh in self.neighborhoods:
             flu_npc = NPC()
             flu_npc.change_flu_state(NPC_STATES_FLU.INCUBATING)
             nbh.add_NPC(flu_npc)
+            nbh.orig_alive += 1
 
     def _get_original_state_metrics(self):
         og_alive = 0
@@ -330,7 +332,7 @@ class City:
 
     def _art_trans_flu_vaccine_free(self, nbh_index):
         nbh = self.neighborhoods[nbh_index]
-        vaccine_success = min(0, 0.2 - (0.01 * self.fear))
+        vaccine_success = max(0, 0.2 - (0.01 * self.fear))
         for npc in nbh.NPCs:
             if (npc.state_flu is not NPC_STATES_FLU.IMMUNE) and (npc.state_zombie is not NPC_STATES_ZOMBIE.ZOMBIE):
                 if random.random() <= vaccine_success:
@@ -416,9 +418,9 @@ class City:
 
             # Update based on deployments
             if DEPLOYMENTS.KILN_OVERSIGHT in nbh.deployments:
-                burial_prob = max(1.0, burial_prob * 1.5)
+                burial_prob = min(1.0, burial_prob * 1.5)
             if DEPLOYMENTS.KILN_NO_QUESTIONS in nbh.deployments:
-                burial_prob = max(1.0, burial_prob * 5.0)
+                burial_prob = min(1.0, burial_prob * 5.0)
 
             # Universal Law: Burial
             for npc in nbh.NPCs:
@@ -442,13 +444,13 @@ class City:
 
             # Update based on deployments
             if DEPLOYMENTS.BSL4LAB_SAFETY_OFF in nbh.deployments:
-                fumes_prob = max(1.0, fumes_prob * 10.0)
+                fumes_prob = min(1.0, fumes_prob * 10.0)
             if DEPLOYMENTS.SOCIAL_DISTANCING_SIGNS in nbh.deployments:
-                cough_prob = max(1.0, fumes_prob * 0.75)
-                fumes_prob = max(1.0, fumes_prob * 0.75)
+                cough_prob = min(1.0, fumes_prob * 0.75)
+                fumes_prob = min(1.0, fumes_prob * 0.75)
             if DEPLOYMENTS.SOCIAL_DISTANCING_CELEBRITY in nbh.deployments:
-                cough_prob = max(1.0, fumes_prob * 0.25)
-                fumes_prob = max(1.0, fumes_prob * 0.25)
+                cough_prob = min(1.0, fumes_prob * 0.25)
+                fumes_prob = min(1.0, fumes_prob * 0.25)
 
             # Flu Laws
             for npc in nbh.NPCs:
@@ -493,20 +495,20 @@ class City:
 
             # Update based on deployments
             if DEPLOYMENTS.BITE_CENTER_DISINFECT in nbh.deployments:
-                turn_prob = max(1.0, turn_prob * 0.5)
+                turn_prob = min(1.0, turn_prob * 0.5)
             if DEPLOYMENTS.BITE_CENTER_AMPUTATE in nbh.deployments:
-                turn_prob = max(1.0, turn_prob * 0.05)
+                turn_prob = min(1.0, turn_prob * 0.05)
             if DEPLOYMENTS.BROADCAST_CALL_TO_ARMS in nbh.deployments:
-                fight_back_prob = max(1.0, fight_back_prob * 5.0)
-                devour_prob = max(1.0, devour_prob * 1.25)
+                fight_back_prob = min(1.0, fight_back_prob * 5.0)
+                devour_prob = min(1.0, devour_prob * 1.25)
             if DEPLOYMENTS.BSL4LAB_SAFETY_OFF in nbh.deployments:
-                rise_prob = max(1.0, rise_prob * 10.0)
+                rise_prob = min(1.0, rise_prob * 10.0)
             if DEPLOYMENTS.SOCIAL_DISTANCING_SIGNS in nbh.deployments:
-                bite_prob = max(1.0, bite_prob * 0.75)
-                fight_back_prob = max(1.0, fight_back_prob * 0.75)
+                bite_prob = min(1.0, bite_prob * 0.75)
+                fight_back_prob = min(1.0, fight_back_prob * 0.75)
             if DEPLOYMENTS.SOCIAL_DISTANCING_SIGNS in nbh.deployments:
-                bite_prob = max(1.0, bite_prob * 0.25)
-                fight_back_prob = max(1.0, fight_back_prob * 0.25)
+                bite_prob = min(1.0, bite_prob * 0.25)
+                fight_back_prob = min(1.0, fight_back_prob * 0.25)
 
             # Zombie Laws
             for npc in nbh.NPCs:
@@ -715,7 +717,7 @@ class City:
         # Some NPCs want to stay here to keep from spreading the disease
         for npc in nbh.NPCs:
             # People who are sickly and active want to stay in place
-            if npc.sickly and npc.active:
+            if npc.sickly or npc.active:
                 for _ in range(2):
                     npc.add_to_bag(NPC_ACTIONS.STAY)
 
@@ -724,7 +726,7 @@ class City:
         # Some NPCs want to stay here to keep from spreading the disease
         for npc in nbh.NPCs:
             # People who are sickly and active want to stay in place
-            if npc.sickly and npc.active:
+            if npc.sickly or npc.active:
                 for _ in range(9):
                     npc.add_to_bag(NPC_ACTIONS.STAY)
 

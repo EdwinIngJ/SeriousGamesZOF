@@ -36,14 +36,15 @@ class Neighborhood:
 
     def _npc_init(self, num_npcs):
         init_npcs = []
+        #There is a 10% chance for the NPC to be a zombie and/or have the flu
         for _ in range(num_npcs):
             npc = NPC()
             zombie_chance = random.uniform(0, 1)
             flu_chance = random.uniform(0, 1)
             if zombie_chance >= 0.9:
-                npc.state_zombie = NPC_STATES_ZOMBIE.ZOMBIE
+                npc.change_zombie_state(NPC_STATES_ZOMBIE.ZOMBIE)
             if flu_chance >= 0.9:
-                npc.state_flu = NPC_STATES_FLU.FLU
+                npc.change_flu_state(NPC_STATES_FLU.FLU)
             init_npcs.append(npc)
         self.add_NPCs(init_npcs)
 
