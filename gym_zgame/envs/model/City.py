@@ -283,124 +283,60 @@ class City:
         self.update_summary_stats()
         for nbh_index in range(len(self.neighborhoods)):
             nbh = self.neighborhoods[nbh_index]
+            state_change_deployments = [DEPLOYMENTS.Z_CURE_CENTER_FDA, DEPLOYMENTS.Z_CURE_CENTER_EXP, DEPLOYMENTS.FLU_VACCINE_OPT, DEPLOYMENTS.FLU_VACCINE_MAN, DEPLOYMENTS.KILN_NO_QUESTIONS, DEPLOYMENTS.SNIPER_TOWER_CONFIRM, DEPLOYMENTS.SNIPER_TOWER_FREE, DEPLOYMENTS.FIREBOMB_BARRAGE] 
             for dep in nbh.deployments:
-                if dep is DEPLOYMENTS.Z_CURE_CENTER_FDA:
-                    self._art_trans_z_cure_center_fda(nbh_index)
-                elif dep is DEPLOYMENTS.Z_CURE_CENTER_EXP:
-                    self._art_trans_z_cure_center_exp(nbh_index)
-                elif dep is DEPLOYMENTS.FLU_VACCINE_OPT:
-                    self._art_trans_flu_vaccine_free(nbh_index)
-                elif dep is DEPLOYMENTS.FLU_VACCINE_MAN:
-                    self._art_trans_flu_vaccine_man(nbh_index)
-                elif dep is DEPLOYMENTS.KILN_NO_QUESTIONS:
-                    self._art_trans_kiln_no_questions(nbh_index)
-                elif dep is DEPLOYMENTS.SNIPER_TOWER_CONFIRM:
-                    self._art_trans_sniper_tower_confirm(nbh_index)
-                elif dep is DEPLOYMENTS.SNIPER_TOWER_FREE:
-                    self._art_trans_sniper_tower_free(nbh_index)
-                elif dep is DEPLOYMENTS.FIREBOMB_BARRAGE:
-                    self._art_trans_firebomb_barrage(nbh_index)
+                if dep in state_change_deployments:
+                    self._art_trans(dep, nbh_index)            
         self.update_summary_stats()
-
-    def _art_trans_z_cure_center_fda(self, nbh_index):
-        bite_cure_prob = 0.25
-        zombie_cure_prob = 0.01
+    def _art_trans(self, dep, nbh_index):
+        #Editable variables for deployment probabilities
         nbh = self.neighborhoods[nbh_index]
+        bite_cure_prob_z_cure_center_fda = 0.25
+        zombie_cure_prob_z_cure_center_fda = 0.01
+        bite_cure_prob_z_cure_center_exp = 0.33
+        bite_cure_fail_prob_z_cure_center_exp = 0.5
+        zombie_cure_prob_z_cure_center_exp = 0.33
+        vaccine_success_flu_vaccine_free = max(0, 0.2 - (0.01 * self.fear))
+        vaccine_success_flu_vaccine_man = 0.5
+        zombie_burn_prob_kiln_no_questions = 0.1
+        sick_burn_prob_kiln_no_questions = 0.05
+        active_burn_prob_kiln_no_questions = 0.01
+        zombie_shot_prob_sniper_tower_confirm = 1 / nbh.num_zombie if nbh.num_zombie > 0 else 0
+        zombie_shot_prob_sniper_tower_free = 1 / nbh.num_moving if nbh.num_moving > 0 else 0
+        zombie_bitten_shot_prob_sniper_tower_free = 0.5 * (nbh.num_zombie_bitten / nbh.num_moving) if nbh.num_moving > 0 else 0
+        flu_shot_prob_sniper_tower_free = 0.5 * (nbh.num_flu / nbh.num_moving) if nbh.num_moving > 0 else 0
+        dead_dead_prob_firebomb_barrage = 0.5
+        death_prob_firebomb_barrage = 0.1
+        vaporize_prob_firebomb_barrage = 0.9
         for npc in nbh.NPCs:
-            if npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE_BITTEN:
-                if random.random() <= bite_cure_prob:
-                    npc.change_zombie_state(NPC_STATES_ZOMBIE.HUMAN)
-            if npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE:
-                if random.random() <= zombie_cure_prob:
-                    npc.change_zombie_state(NPC_STATES_ZOMBIE.ZOMBIE_BITTEN)
-
-    def _art_trans_z_cure_center_exp(self, nbh_index):
-        bite_cure_prob = 0.33
-        bite_cure_fail_prob = 0.5
-        zombie_cure_prob = 0.33
-        nbh = self.neighborhoods[nbh_index]
-        for npc in nbh.NPCs:
-            if npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE_BITTEN:
-                if random.random() <= bite_cure_prob:
-                    npc.change_zombie_state(NPC_STATES_ZOMBIE.HUMAN)
-            if npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE_BITTEN:
-                if random.random() <= bite_cure_fail_prob:
-                    npc.change_dead_state(NPC_STATES_DEAD.DEAD)
-            if npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE:
-                if random.random() <= zombie_cure_prob:
-                    npc.change_zombie_state(NPC_STATES_ZOMBIE.ZOMBIE_BITTEN)
-
-    def _art_trans_flu_vaccine_free(self, nbh_index):
-        nbh = self.neighborhoods[nbh_index]
-        vaccine_success = max(0, 0.2 - (0.01 * self.fear))
-        for npc in nbh.NPCs:
-            if (npc.state_flu is not NPC_STATES_FLU.IMMUNE) and (npc.state_zombie is not NPC_STATES_ZOMBIE.ZOMBIE):
-                if random.random() <= vaccine_success:
-                    npc.change_flu_state(NPC_STATES_FLU.IMMUNE)
-
-    def _art_trans_flu_vaccine_man(self, nbh_index):
-        nbh = self.neighborhoods[nbh_index]
-        vaccine_success = 0.5
-        for npc in nbh.NPCs:
-            if (npc.state_flu is not NPC_STATES_FLU.IMMUNE) and (npc.state_zombie is not NPC_STATES_ZOMBIE.ZOMBIE):
-                if random.random() <= vaccine_success:
-                    npc.change_flu_state(NPC_STATES_FLU.IMMUNE)
-
-    def _art_trans_kiln_no_questions(self, nbh_index):
-        zombie_burn_prob = 0.1
-        sick_burn_prob = 0.05
-        active_burn_prob = 0.01
-        nbh = self.neighborhoods[nbh_index]
-        for npc in nbh.NPCs:
-            if npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE:
-                if random.random() <= zombie_burn_prob:
-                    npc.change_dead_state(NPC_STATES_DEAD.ASHEN)
-            if npc.sickly:
-                if random.random() <= sick_burn_prob:
-                    npc.change_dead_state(NPC_STATES_DEAD.ASHEN)
-            if npc.active:
-                if random.random() <= active_burn_prob:
-                    npc.change_dead_state(NPC_STATES_DEAD.ASHEN)
-
-    def _art_trans_sniper_tower_confirm(self, nbh_index):
-        nbh = self.neighborhoods[nbh_index]
-        zombie_shot_prob = 1 / nbh.num_zombie if nbh.num_zombie > 0 else 0
-        for npc in nbh.NPCs:
-            if npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE:
-                if random.random() <= zombie_shot_prob:
-                    npc.change_dead_state(NPC_STATES_DEAD.DEAD)
-
-    def _art_trans_sniper_tower_free(self, nbh_index):
-        nbh = self.neighborhoods[nbh_index]
-        zombie_shot_prob = 1 / nbh.num_moving if nbh.num_moving > 0 else 0
-        zombie_bitten_shot_prob = 0.5 * (nbh.num_zombie_bitten / nbh.num_moving) if nbh.num_moving > 0 else 0
-        flu_shot_prob = 0.5 * (nbh.num_flu / nbh.num_moving) if nbh.num_moving > 0 else 0
-        for npc in nbh.NPCs:
-            if npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE:
-                if random.random() <= zombie_shot_prob:
-                    npc.change_dead_state(NPC_STATES_DEAD.DEAD)
-            if npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE_BITTEN:
-                if random.random() <= zombie_bitten_shot_prob:
-                    npc.change_dead_state(NPC_STATES_DEAD.DEAD)
-            if npc.state_flu is NPC_STATES_FLU.FLU:
-                if random.random() <= flu_shot_prob:
-                    npc.change_dead_state(NPC_STATES_DEAD.DEAD)
-
-    def _art_trans_firebomb_barrage(self, nbh_index):
-        nbh = self.neighborhoods[nbh_index]
-        dead_dead_prob = 0.5
-        death_prob = 0.1
-        vaporize_prob = 0.9
-        for npc in nbh.NPCs:
-            if npc.state_dead is NPC_STATES_DEAD.DEAD:
-                if random.random() <= dead_dead_prob:
-                    npc.change_dead_state(NPC_STATES_DEAD.ASHEN)
-            if npc.moving:
-                if random.random() <= death_prob:
-                    npc.change_dead_state(NPC_STATES_DEAD.DEAD)
-            if npc.moving:
-                if random.random() <= vaporize_prob:
-                    npc.change_dead_state(NPC_STATES_DEAD.ASHEN)
+            #List of all conditions, state change type, state changes for each deployment
+            states_changes_for_deployments = {
+                DEPLOYMENTS.Z_CURE_CENTER_FDA : [[npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE_BITTEN, bite_cure_prob_z_cure_center_fda, "zombie", NPC_STATES_ZOMBIE.HUMAN],
+                                                 [npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE, zombie_cure_prob_z_cure_center_fda, "zombie", NPC_STATES_ZOMBIE.ZOMBIE_BITTEN]],
+                DEPLOYMENTS.Z_CURE_CENTER_EXP : [[npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE_BITTEN, bite_cure_prob_z_cure_center_exp, "zombie", NPC_STATES_ZOMBIE.HUMAN],
+                                                 [npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE_BITTEN, bite_cure_fail_prob_z_cure_center_exp, "dead", NPC_STATES_DEAD.DEAD],
+                                                 [npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE, zombie_cure_prob_z_cure_center_exp, "zombie", NPC_STATES_ZOMBIE.ZOMBIE_BITTEN]],
+                DEPLOYMENTS.FLU_VACCINE_OPT : [[(npc.state_flu is not NPC_STATES_FLU.IMMUNE) and (npc.state_zombie is not NPC_STATES_ZOMBIE.ZOMBIE), vaccine_success_flu_vaccine_free, "flu", NPC_STATES_FLU.IMMUNE]],
+                DEPLOYMENTS.FLU_VACCINE_MAN : [[(npc.state_flu is not NPC_STATES_FLU.IMMUNE) and (npc.state_zombie is not NPC_STATES_ZOMBIE.ZOMBIE), vaccine_success_flu_vaccine_man, "flu", NPC_STATES_FLU.IMMUNE]],
+                DEPLOYMENTS.KILN_NO_QUESTIONS : [[npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE, zombie_burn_prob_kiln_no_questions, "dead", NPC_STATES_DEAD.ASHEN],
+                                                 [npc.sickly, sick_burn_prob_kiln_no_questions, "dead", NPC_STATES_DEAD.ASHEN],
+                                                 [npc.active, active_burn_prob_kiln_no_questions, "dead", NPC_STATES_DEAD.ASHEN]],
+                DEPLOYMENTS.SNIPER_TOWER_CONFIRM : [[npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE, zombie_shot_prob_sniper_tower_confirm, "dead", NPC_STATES_DEAD.DEAD]],
+                DEPLOYMENTS.SNIPER_TOWER_FREE : [[npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE, zombie_shot_prob_sniper_tower_free, "dead", NPC_STATES_DEAD.DEAD],
+                                                 [npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE_BITTEN, zombie_bitten_shot_prob_sniper_tower_free, "dead", NPC_STATES_DEAD.DEAD],
+                                                 [npc.state_flu is NPC_STATES_FLU.FLU, flu_shot_prob_sniper_tower_free, "dead", NPC_STATES_DEAD.DEAD]], 
+                DEPLOYMENTS.FIREBOMB_BARRAGE : [[npc.state_dead is NPC_STATES_DEAD.DEAD, dead_dead_prob_firebomb_barrage, "dead", NPC_STATES_DEAD.ASHEN],
+                                                [npc.moving, death_prob_firebomb_barrage, "dead", NPC_STATES_DEAD.DEAD],
+                                                [npc.moving, vaporize_prob_firebomb_barrage, "dead", NPC_STATES_DEAD.ASHEN]]
+            }
+            for possible_change in states_changes_for_deployments[dep]:
+                if possible_change[0] and random.random() <= possible_change[1]:
+                    if possible_change[2] == "zombie":
+                        npc.change_zombie_state(possible_change[3])
+                    elif possible_change[2] == "dead":
+                        npc.change_dead_state(possible_change[3])
+                    elif possible_change[2] == "flu":
+                        npc.change_flu_state(possible_change[3])
 
     def _update_natural_states(self):
         self._society_transitions()
