@@ -495,7 +495,7 @@ class City:
     def _push_action_bag_add(self, npc, nbh, number_to_add):
         for npc_action in nbh.adj_locations.values():
             for _ in range(number_to_add):
-                npc.add_to_bag(npc.action)
+                npc.add_to_bag(npc_action)
                              
     def _push_specific_bag_adjust(self, dep, nbh_index):
         nbh = self.neighborhoods[nbh_index]
