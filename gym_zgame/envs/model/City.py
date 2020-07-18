@@ -49,6 +49,7 @@ class City:
         self.num_active = 0
         self.num_sickly = 0
         self.update_summary_stats()
+        self.prev_stats = None
 
     def _init_neighborhoods(self, loc_npc_range):
         center = Neighborhood('CENTER', LOCATIONS.CENTER,
@@ -178,7 +179,11 @@ class City:
         self.num_active = num_active
         self.num_sickly = num_sickly
 
+    def get_delta(self):
+        return {keys: self.get_data()[keys]-self.prev_stats[keys] for keys in self.prev_stats}
+
     def do_turn(self, actions):
+        self.prev_stats = self.get_data()
         loc_1 = actions[0][0]  # Unpack for readability
         dep_1 = actions[0][1]  # Unpack for readability
         loc_2 = actions[1][0]  # Unpack for readability
@@ -206,6 +211,7 @@ class City:
         self.resources += 1
         self.fear -= 1 if self.fear > 0 else 0
         self.turn += 1
+        self.get_delta()
         return score, done
 
     def _add_buildings_to_locations(self, nbh_1_index, dep_1, nbh_2_index, dep_2):

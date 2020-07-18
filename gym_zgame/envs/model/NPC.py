@@ -25,10 +25,10 @@ class NPC:
     def set_init_bag_alive(self):
         for _ in range(6):
             self.bag.append(NPC_ACTIONS.STAY)
-        self.bag.append(NPC_ACTIONS.N)
-        self.bag.append(NPC_ACTIONS.S)
-        self.bag.append(NPC_ACTIONS.E)
-        self.bag.append(NPC_ACTIONS.W)
+            self.bag.append(NPC_ACTIONS.N)
+            self.bag.append(NPC_ACTIONS.S)
+            self.bag.append(NPC_ACTIONS.E)
+            self.bag.append(NPC_ACTIONS.W)
 
     def clean_bag(self, location):
         # Build list of things that shouldn't be in the bag
@@ -81,6 +81,7 @@ class NPC:
         return random.choice(self.bag)
 
     def get_data(self):
+        self.update_states()
         player_data = {'player_id': self.id,
                        'state_dead': self.state_dead,
                        'state_zombie': self.state_zombie,
