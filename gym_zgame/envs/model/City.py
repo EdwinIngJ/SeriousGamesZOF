@@ -484,174 +484,62 @@ class City:
     def adjust_bags_for_deployments(self):
         for nbh_index in range(len(self.neighborhoods)):
             nbh = self.neighborhoods[nbh_index]
-            if DEPLOYMENTS.QUARANTINE_OPEN in nbh.deployments:
-                self._bag_adjust_quarantine_open(nbh_index)
-            if DEPLOYMENTS.QUARANTINE_FENCED in nbh.deployments:
-                self._bag_adjust_quarantine_fenced(nbh_index)
-            if DEPLOYMENTS.PHEROMONES_BRAINS in nbh.deployments:
-                self._bag_adjust_pheromones_brains(nbh_index)
-            if DEPLOYMENTS.PHEROMONES_MEAT in nbh.deployments:
-                self._bag_adjust_pheromones_meat(nbh_index)
-            if DEPLOYMENTS.RALLY_POINT_OPT in nbh.deployments:
-                self._bag_adjust_rally_point_opt(nbh_index)
-            if DEPLOYMENTS.RALLY_POINT_FULL in nbh.deployments:
-                self._bag_adjust_rally_point_full(nbh_index)
-            if DEPLOYMENTS.SOCIAL_DISTANCING_SIGNS in nbh.deployments:
-                self._bag_adjust_social_distancing_signs(nbh_index)
-            if DEPLOYMENTS.SOCIAL_DISTANCING_CELEBRITY in nbh.deployments:
-                self._bag_adjust_social_distancing_celeb(nbh_index)
+            for dep in nbh.deployments:
+                self._push_specific_bag_adjust(dep, nbh_index)
+                self._pull_bag_adjust(dep, nbh_index)
 
-    def _bag_adjust_quarantine_open(self, nbh_index):
+    def _specific_action_bag_add(self, npc, action, number_to_add):
+        for _ in range(number_to_add):
+            npc.add_to_bag(action)
+            
+    def _push_action_bag_add(self, npc, nbh, number_to_add):
+        for npc_action in nbh.adj_locations.values():
+            for _ in range(number_to_add):
+                npc.add_to_bag(npc.action)
+                             
+    def _push_specific_bag_adjust(self, dep, nbh_index):
         nbh = self.neighborhoods[nbh_index]
+        deps_that_belong_here = {DEPLOYMENTS.QUARANTINE_OPEN : 1, DEPLOYMENTS.QUARANTINE_FENCED : 1, DEPLOYMENTS.PHEROMONES_BRAINS : 1, DEPLOYMENTS.PHEROMONES_MEAT : 1, DEPLOYMENTS.SOCIAL_DISTANCING_SIGNS : 1, DEPLOYMENTS.SOCIAL_DISTANCING_CELEBRITY : 1}
+        if deps_that_belong_here.get(dep, 0) == 0:
+            return -1
         for npc in nbh.NPCs:
-            # push out active people
-            if npc.active:
-                for npc_action in nbh.adj_locations.values():
-                    for _ in range(3):
-                        npc.add_to_bag(npc_action)
-            # sick people here tend to stay
-            if npc.sickly:
-                for _ in range(10):
-                    npc.add_to_bag(NPC_ACTIONS.STAY)
-        # Pull in sickly people for adj neighborhoods
+            bag_changes_for_deployments = { #format for each possible change is [condition, push npc away from neighborhood or specific action, number of actions to addof each]
+                DEPLOYMENTS.QUARANTINE_OPEN : [[npc.active, "push", 3], [npc.sickly, NPC_ACTIONS.STAY, 10]], 
+                DEPLOYMENTS.QUARANTINE_FENCED : [[npc.active, "push", 3], [npc.sickly, NPC_ACTIONS.STAY, 10]],
+                DEPLOYMENTS.PHEROMONES_BRAINS : [[npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE, NPC_ACTIONS.STAY, 10], [npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE_BITTEN, NPC_ACTIONS.STAY, 1]],
+                DEPLOYMENTS.PHEROMONES_MEAT : [[npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE, NPC_ACTIONS.STAY, 10], [npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE_BITTEN, NPC_ACTIONS.STAY, 9], [npc.active or npc.state_flu is NPC_STATES_FLU.INCUBATING, NPC_ACTIONS.STAY, 1]],
+                DEPLOYMENTS.SOCIAL_DISTANCING_SIGNS : [[npc.sickly or npc.active, NPC_ACTIONS.STAY, 2]],
+                DEPLOYMENTS.SOCIAL_DISTANCING_CELEBRITY : [[npc.sickly or npc.active, NPC_ACTIONS.STAY, 9]]
+            }
+            for possible_changes in bag_changes_for_deployments[dep]:
+                if possible_changes[0]:
+                    if possible_changes[1] == "push":
+                        self._push_action_bag_add(npc, nbh, possible_changes[2])
+                    else:
+                        self._specific_action_bag_add(npc, possible_changes[1], possible_changes[2])
+                        
+    def _pull_bag_adjust(self, dep, nbh_index):
+        nbh = self.neighborhoods[nbh_index]
+        deps_that_belong_here = {DEPLOYMENTS.QUARANTINE_OPEN : 1, DEPLOYMENTS.QUARANTINE_FENCED : 1, DEPLOYMENTS.PHEROMONES_BRAINS : 1, DEPLOYMENTS.PHEROMONES_MEAT : 1, DEPLOYMENTS.RALLY_POINT_OPT : 1, DEPLOYMENTS.RALLY_POINT_FULL : 1}
+        if deps_that_belong_here.get(dep, 0) == 0:
+            return -1
         for loc, npc_action in nbh.adj_locations.items():
             inward_npc_action = NPC_ACTIONS.reverse_action(npc_action)
             for temp_nbh in self.neighborhoods:
                 if temp_nbh.location is loc:
                     for npc in temp_nbh.NPCs:
-                        if npc.sickly:
-                            for _ in range(10):
-                                npc.add_to_bag(inward_npc_action)
-
-    def _bag_adjust_quarantine_fenced(self, nbh_index):
-        nbh = self.neighborhoods[nbh_index]
-        for npc in nbh.NPCs:
-            # push out active people
-            if npc.active:
-                for npc_action in nbh.adj_locations.values():
-                    for _ in range(3):
-                        npc.add_to_bag(npc_action)
-            # sick people here tend to stay
-            if npc.sickly:
-                for _ in range(10):
-                    npc.add_to_bag(NPC_ACTIONS.STAY)
-        # Pull in sickly people for adj neighborhoods
-        for loc, npc_action in nbh.adj_locations.items():
-            inward_npc_action = NPC_ACTIONS.reverse_action(npc_action)
-            for temp_nbh in self.neighborhoods:
-                if temp_nbh.location is loc:
-                    for npc in temp_nbh.NPCs:
-                        if npc.sickly:
-                            for _ in range(10):
-                                npc.add_to_bag(inward_npc_action)
-
-    def _bag_adjust_pheromones_brains(self, nbh_index):
-        nbh = self.neighborhoods[nbh_index]
-        # Some NPCs want to stay here because of the pheromones
-        for npc in nbh.NPCs:
-            # Zombies want to stay even more
-            if npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE:
-                for _ in range(10):
-                    npc.add_to_bag(NPC_ACTIONS.STAY)
-            # Zombie Bitten want to stay more too
-            if npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE_BITTEN:
-                for _ in range(1):
-                    npc.add_to_bag(NPC_ACTIONS.STAY)
-        # Pull in people for adj neighborhoods
-        for loc, npc_action in nbh.adj_locations.items():
-            inward_npc_action = NPC_ACTIONS.reverse_action(npc_action)
-            for temp_nbh in self.neighborhoods:
-                if temp_nbh.location is loc:
-                    for npc in temp_nbh.NPCs:
-                        # Brains smell good to and attract zombies
-                        if npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE:
-                            for _ in range(10):
-                                npc.add_to_bag(inward_npc_action)
-                        # Brains smell good to and attract zombie_bitten
-                        if npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE_BITTEN:
-                            for _ in range(1):
-                                npc.add_to_bag(inward_npc_action)
-
-    def _bag_adjust_pheromones_meat(self, nbh_index):
-        nbh = self.neighborhoods[nbh_index]
-        # Some NPCs want to stay here because of the pheromones
-        for npc in nbh.NPCs:
-            # Zombies want to stay even more
-            if npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE:
-                for _ in range(10):
-                    npc.add_to_bag(NPC_ACTIONS.STAY)
-            # Zombie Bitten want to stay more too
-            if npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE_BITTEN:
-                for _ in range(9):
-                    npc.add_to_bag(NPC_ACTIONS.STAY)
-            # Everyone who is active is also a little attracted to meat
-            if npc.active or npc.state_flu is NPC_STATES_FLU.INCUBATING:
-                for _ in range(1):
-                    npc.add_to_bag(NPC_ACTIONS.STAY)
-        # Pull in people for adj neighborhoods
-        for loc, npc_action in nbh.adj_locations.items():
-            inward_npc_action = NPC_ACTIONS.reverse_action(npc_action)
-            for temp_nbh in self.neighborhoods:
-                if temp_nbh.location is loc:
-                    for npc in temp_nbh.NPCs:
-                        # Meat smells good to and attracts zombies
-                        if npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE:
-                            for _ in range(10):
-                                npc.add_to_bag(inward_npc_action)
-                        # Meat smells good to and attracts zombie_bitten
-                        if npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE_BITTEN:
-                            for _ in range(9):
-                                npc.add_to_bag(inward_npc_action)
-                        # Meat smells good to and attracts everyone who is active
-                        if npc.active or npc.state_flu is NPC_STATES_FLU.INCUBATING:
-                            for _ in range(1):
-                                npc.add_to_bag(inward_npc_action)
-
-    def _bag_adjust_rally_point_opt(self, nbh_index):
-        nbh = self.neighborhoods[nbh_index]
-        # Pull in people for adj neighborhoods
-        for loc, npc_action in nbh.adj_locations.items():
-            inward_npc_action = NPC_ACTIONS.reverse_action(npc_action)
-            for temp_nbh in self.neighborhoods:
-                if temp_nbh.location is loc:
-                    for npc in temp_nbh.NPCs:
-                        # Sometimes people listen
-                        if npc.active:
-                            for _ in range(3):
-                                npc.add_to_bag(inward_npc_action)
-
-    def _bag_adjust_rally_point_full(self, nbh_index):
-        nbh = self.neighborhoods[nbh_index]
-        # Pull in people for adj neighborhoods
-        for loc, npc_action in nbh.adj_locations.items():
-            inward_npc_action = NPC_ACTIONS.reverse_action(npc_action)
-            for temp_nbh in self.neighborhoods:
-                if temp_nbh.location is loc:
-                    for npc in temp_nbh.NPCs:
-                        # Sometimes people listen
-                        if (npc.state_zombie is not NPC_STATES_ZOMBIE.ZOMBIE) or \
-                                (npc.state_dead is not NPC_STATES_DEAD.DEAD):
-                            for _ in range(10):
-                                npc.add_to_bag(inward_npc_action)
-
-    def _bag_adjust_social_distancing_signs(self, nbh_index):
-        nbh = self.neighborhoods[nbh_index]
-        # Some NPCs want to stay here to keep from spreading the disease
-        for npc in nbh.NPCs:
-            # People who are sickly and active want to stay in place
-            if npc.sickly or npc.active:
-                for _ in range(2):
-                    npc.add_to_bag(NPC_ACTIONS.STAY)
-
-    def _bag_adjust_social_distancing_celeb(self, nbh_index):
-        nbh = self.neighborhoods[nbh_index]
-        # Some NPCs want to stay here to keep from spreading the disease
-        for npc in nbh.NPCs:
-            # People who are sickly and active want to stay in place
-            if npc.sickly or npc.active:
-                for _ in range(9):
-                    npc.add_to_bag(NPC_ACTIONS.STAY)
-
+                        bag_changes_for_deployments = { #format for each possible change is [condition, push npc away from neighborhood or specific action, number of actions to addof each]
+                            DEPLOYMENTS.QUARANTINE_OPEN : [[npc.sickly, 10]],
+                            DEPLOYMENTS.QUARANTINE_FENCED : [[npc.sickly, 10]],
+                            DEPLOYMENTS.PHEROMONES_BRAINS : [[npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE, 10], [npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE_BITTEN, 1]],
+                            DEPLOYMENTS.PHEROMONES_MEAT : [[npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE, 10], [npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE_BITTEN, 9], [npc.active or npc.state_flu is NPC_STATES_FLU.INCUBATING, 1]],
+                            DEPLOYMENTS.RALLY_POINT_OPT : [[npc.active, 3]],
+                            DEPLOYMENTS.RALLY_POINT_FULL : [[(npc.state_zombie is not NPC_STATES_ZOMBIE.ZOMBIE) or (npc.state_dead is not NPC_STATES_DEAD.DEAD), 10]]
+                        }
+                        for possible_changes in bag_changes_for_deployments[dep]:
+                            if possible_changes[0]:
+                                self._specific_action_bag_add(npc, inward_npc_action, possible_changes[1])
+    
     def process_moves(self):
         # Non-dead, non-zombie people
         self._normal_moves()
