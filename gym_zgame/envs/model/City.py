@@ -223,46 +223,32 @@ class City:
         # Update fear and resources increments
         fear_cost_per_turn = 0
         resource_cost_per_turn = 0
+        deployments_fear_resource_costs = {
+            DEPLOYMENTS.QUARANTINE_FENCED : [1,0],
+            DEPLOYMENTS.BITE_CENTER_AMPUTATE : [1,0],
+            DEPLOYMENTS.Z_CURE_CENTER_FDA : [1,0],
+            DEPLOYMENTS.Z_CURE_CENTER_EXP : [1,1],
+            DEPLOYMENTS.FLU_VACCINE_MAN : [1,1],
+            DEPLOYMENTS.BROADCAST_DONT_PANIC : [1,0],
+            DEPLOYMENTS.BROADCAST_CALL_TO_ARMS : [1,0],
+            DEPLOYMENTS.SNIPER_TOWER_FREE : [1,0],
+            DEPLOYMENTS.PHEROMONES_MEAT : [1,1],
+            DEPLOYMENTS.BSL4LAB_SAFETY_OFF : [0,-2],
+            DEPLOYMENTS.RALLY_POINT_FULL : [1,0],
+            DEPLOYMENTS.FIREBOMB_PRIMED : [1,0],
+            DEPLOYMENTS.FIREBOMB_BARRAGE : [10,1],
+            DEPLOYMENTS.SOCIAL_DISTANCING_CELEBRITY : [1,1]
+        }
         for nbh_index in range(len(self.neighborhoods)):
             nbh = self.neighborhoods[nbh_index]
             for dep in nbh.deployments:
                 # deployments not included do not have fear or resources costs
-                if dep is DEPLOYMENTS.QUARANTINE_FENCED:
-                    fear_cost_per_turn += 1
-                elif dep is DEPLOYMENTS.BITE_CENTER_AMPUTATE:
-                    fear_cost_per_turn += 1
-                elif dep is DEPLOYMENTS.Z_CURE_CENTER_FDA:
-                    resource_cost_per_turn += 1
-                elif dep is DEPLOYMENTS.Z_CURE_CENTER_EXP:
-                    fear_cost_per_turn += 1
-                    resource_cost_per_turn += 1
-                elif dep is DEPLOYMENTS.FLU_VACCINE_MAN:
-                    fear_cost_per_turn += 1
-                    resource_cost_per_turn += 1
-                elif dep is DEPLOYMENTS.BROADCAST_DONT_PANIC:
-                    fear_cost_per_turn += -1
-                elif dep is DEPLOYMENTS.BROADCAST_CALL_TO_ARMS:
-                    fear_cost_per_turn += 1
-                elif dep is DEPLOYMENTS.SNIPER_TOWER_FREE:
-                    fear_cost_per_turn += 1
-                elif dep is DEPLOYMENTS.PHEROMONES_MEAT:
-                    fear_cost_per_turn += 1
-                    resource_cost_per_turn += 1
-                elif dep is DEPLOYMENTS.BSL4LAB_SAFETY_ON:
+                if dep is DEPLOYMENTS.BSL4LAB_SAFETY_ON:
                     if nbh.num_active >= 5:
                         resource_cost_per_turn -= 1
-                elif dep is DEPLOYMENTS.BSL4LAB_SAFETY_OFF:
-                    resource_cost_per_turn -= 2
-                elif dep is DEPLOYMENTS.RALLY_POINT_FULL:
-                    fear_cost_per_turn += 1
-                elif dep is DEPLOYMENTS.FIREBOMB_PRIMED:
-                    fear_cost_per_turn += 1
-                elif dep is DEPLOYMENTS.FIREBOMB_BARRAGE:
-                    fear_cost_per_turn += 10
-                    resource_cost_per_turn += 1
-                elif dep is DEPLOYMENTS.SOCIAL_DISTANCING_CELEBRITY:
-                    fear_cost_per_turn += 1
-                    resource_cost_per_turn += 1
+                elif dep in deployments_fear_resource_costs:
+                    fear_cost_per_turn += deployments_fear_resource_costs[dep][0]
+                    resource_cost_per_turn += deployments_fear_resource_costs[dep][1]
         self.delta_fear = fear_cost_per_turn
         self.delta_resources = resource_cost_per_turn
 
