@@ -269,6 +269,8 @@ class City:
     def _update_global_states(self):
         self.resources -= self.delta_resources  # remove upkeep resources (includes new deployments)
         self.fear += self.delta_fear  # increase fear from deployments (includes new deployments)
+        if self.fear < 0:
+            self.fear = 0
         if self.resources < 0:
             self.resources = 0
             self._destroy_upkeep_deployments()
@@ -486,12 +488,12 @@ class City:
             trans_probs = nbh.compute_baseline_trans_probs()
 
             # Get zombie based transitions probabilities
-            turn_prob = trans_probs.get('recover')
-            devour_prob = trans_probs.get('pneumonia')
-            bite_prob = trans_probs.get('incubate')
-            fight_back_prob = trans_probs.get('fumes')
-            collapse_prob = trans_probs.get('cough')
-            rise_prob = trans_probs.get('mutate')
+            turn_prob = trans_probs.get('turn')
+            devour_prob = trans_probs.get('devour')
+            bite_prob = trans_probs.get('bite')
+            fight_back_prob = trans_probs.get('fight_back')
+            collapse_prob = trans_probs.get('collapse')
+            rise_prob = trans_probs.get('rise')
 
             # Update based on deployments
             if DEPLOYMENTS.BITE_CENTER_DISINFECT in nbh.deployments:
@@ -536,12 +538,13 @@ class City:
                 if npc.state_dead is NPC_STATES_DEAD.DEAD:
                     if random.random() <= rise_prob:
                         npc.change_zombie_state(NPC_STATES_ZOMBIE.ZOMBIE)
+                        npc.change_dead_state(NPC_STATES_DEAD.ALIVE)
 
     def reset_bags(self):
         for nbh in self.neighborhoods:
             for npc in nbh.NPCs:
                 npc.empty_bag()  # empty everyone's bag
-                if npc.state_dead is not NPC_STATES_DEAD.DEAD:
+                if npc.state_dead is NPC_STATES_DEAD.ALIVE:
                     npc.set_init_bag_alive()  # if alive, give default bag
                 # Zombie want to move toward the active people around them
                 # Find number active in adj neighborhood
@@ -763,7 +766,7 @@ class City:
             nbh.clean_all_bags()
             zombies_to_move = []
             for npc in nbh.NPCs:
-                if npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE:
+                if npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE and npc.state_dead is NPC_STATES_DEAD.ALIVE:
                     zombies_to_move.append(npc)
             # If there aren't zombies, finish
             if len(zombies_to_move) == 0:
