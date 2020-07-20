@@ -10,7 +10,6 @@ from gym_zgame.envs.enums.LEVELS import LEVELS
 from gym_zgame.envs.enums.NPC_STATES import NPC_STATES_DEAD, NPC_STATES_ZOMBIE, NPC_STATES_FLU
 from gym_zgame.envs.enums.NPC_ACTIONS import NPC_ACTIONS
 
-
 class City:
 
     def __init__(self, loc_npc_range=(9, 15),developer_mode=False):
@@ -23,6 +22,7 @@ class City:
         self.resources = 10
         self.delta_fear = 0
         self.delta_resources = 0
+        self.nbh_delta_local_fear_values = None
         self.score = 0
         self.total_score = 0
         self.turn = 0
@@ -93,8 +93,7 @@ class City:
                                   {LOCATIONS.S: NPC_ACTIONS.E,
                                    LOCATIONS.W: NPC_ACTIONS.N},
                                   random.randrange(loc_npc_range[0], loc_npc_range[1], 1), developer_mode=self.developer_mode)
-        self.neighborhoods = [center, north, south, east, west,
-                              north_east, north_west, south_east, south_west]
+        self.neighborhoods = [north_west, north, north_east, west, center, east, south_west, south, south_east]
 
     def _init_neighborhood_threats(self):
         # Add 10 dead in a random location
@@ -204,6 +203,9 @@ class City:
         self.score = score
         self.total_score += score
         self.resources += 1
+        for nbh_index in range(len(self.neighborhoods)):
+            nbh = self.neighborhoods[nbh_index]
+            nbh.local_fear -= 1 if nbh.local_fear > 0 else 0
         self.fear -= 1 if self.fear > 0 else 0
         self.turn += 1
         return score, done
@@ -239,6 +241,7 @@ class City:
             DEPLOYMENTS.FIREBOMB_BARRAGE : [10,1],
             DEPLOYMENTS.SOCIAL_DISTANCING_CELEBRITY : [1,1]
         }
+        local_fear_cost_per_turn = {0 : 0, 1 : 0, 2 : 0, 3 : 0, 4 : 0, 5 : 0, 6 : 0, 7 : 0, 8 : 0}
         for nbh_index in range(len(self.neighborhoods)):
             nbh = self.neighborhoods[nbh_index]
             for dep in nbh.deployments:
@@ -249,12 +252,22 @@ class City:
                 elif dep in deployments_fear_resource_costs:
                     fear_cost_per_turn += deployments_fear_resource_costs[dep][0]
                     resource_cost_per_turn += deployments_fear_resource_costs[dep][1]
+                    for local_fear_change_nbh_index in range(len(self.neighborhoods)):
+                        if local_fear_change_nbh_index == nbh_index:
+                            local_fear_cost_per_turn[nbh_index] += deployments_fear_resource_costs[dep][0]
+                        else:
+                            local_fear_cost_per_turn[local_fear_change_nbh_index] += deployments_fear_resource_costs[dep][0] * 0.50 #deployments outside the neighborhood only affect fear by 50% than if they were in that neighborhood
+        self.nbh_delta_local_fear_values = local_fear_cost_per_turn.copy()
         self.delta_fear = fear_cost_per_turn
         self.delta_resources = resource_cost_per_turn
 
     def _update_global_states(self):
         self.resources -= self.delta_resources  # remove upkeep resources (includes new deployments)
         self.fear += self.delta_fear  # increase fear from deployments (includes new deployments)
+        for nbh_index in range(len(self.neighborhoods)):
+            nbh = self.neighborhoods[nbh_index]
+            nbh.local_fear += int(self.nbh_delta_local_fear_values[nbh_index] + .9)
+            print(nbh.local_fear)
         if self.fear < 0:
             self.fear = 0
         if self.resources < 0:
@@ -772,7 +785,8 @@ class City:
                        ["Zombies"] + [self._show_data(nbh.num_zombie) for nbh in self.neighborhoods],
                        ["Dead"] + [self._show_data(nbh.num_dead) for nbh in self.neighborhoods],
                        ["Living at Start"] + [nbh.orig_alive for nbh in self.neighborhoods],
-                       ["Dead at Start"] + [nbh.orig_dead for nbh in self.neighborhoods]]
+                       ["Dead at Start"] + [nbh.orig_dead for nbh in self.neighborhoods],
+                       ["Local Fear"] + [nbh.local_fear for nbh in self.neighborhoods]]
         city = city_status(information)
         fancy_string += city
 

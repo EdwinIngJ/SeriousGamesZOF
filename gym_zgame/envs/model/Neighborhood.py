@@ -31,6 +31,7 @@ class Neighborhood:
         self.num_moving = 0
         self.num_active = 0
         self.num_sickly = 0
+        self.local_fear = 0
         self.update_summary_stats()
         self.orig_alive, self.orig_dead = self._get_original_state_metrics()
 
@@ -174,6 +175,7 @@ class Neighborhood:
         self.update_summary_stats()
         neighborhood_data = {'id': self.id,
                              'location': self.location,
+                             'local_fear': self.local_fear,
                              'num_npcs': self.num_npcs,
                              'num_alive': self.num_alive,
                              'num_dead': self.num_dead,
