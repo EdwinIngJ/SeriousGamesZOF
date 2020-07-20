@@ -744,16 +744,16 @@ class City:
             text = ""
             for nbh_information in information[1:]:
                 text += PBack.blue + '==' + PBack.reset + ' {}: {}'.format(information[0], nbh_information[0]).ljust(23) + \
-                        PFont.bold + PFont.underline + PFore.purple + '({})'.format(nbh_information[1]) + PControl.reset + ' '
+                        PFont.bold + PFont.underline + PFore.purple + '{}'.format(nbh_information[1]) + PControl.reset + ' '
             text += PBack.blue + '==' + PBack.reset + '\n'
             return text
         def city_status(information): # 2-D Array of [[statistic_name, data for nbh1, data for nbh2, ...] for each statistic]
-            symbols = ["  ", "NW", " N", "NE", " W", " C", " E", "SW", " S", "SE"]
-            information_top_location_line = [information[0][0]] + [(information[0][i], 23, symbols[i]) for i in range(1,4)]
+            symbols = ["  ", "(NW)", " (N)", "(NE)", " (W)", " (C)", " (E)", "(SW)", " (S)", "(SE)"]
+            information_top_location_line = [information[0][0]] + [(information[0][i], symbols[i]) for i in range(1,4)]
             information_top_statistics = [([information[i][0]] + [information[i][j] for j in range(1,4)]) for i in range(1,len(information))]
-            information_center_location_line = [information[0][0]] + [(information[0][i], 23, symbols[i]) for i in range(4,7)]
+            information_center_location_line = [information[0][0]] + [(information[0][i], symbols[i]) for i in range(4,7)]
             information_center_statistics = [([information[i][0]] + [information[i][j] for j in range(4,7)]) for i in range(1,len(information))]
-            information_bottom_location_line = [information[0][0]] + [(information[0][i], 23, symbols[i]) for i in range(7,10)]
+            information_bottom_location_line = [information[0][0]] + [(information[0][i], symbols[i]) for i in range(7,10)]
             information_bottom_statistics = [([information[i][0]] + [information[i][j] for j in range(7,10)]) for i in range(1,len(information))]
 
             text = PBack.blue + '=====================================  CITY STATUS  ========================================' + PBack.reset + '\n'
