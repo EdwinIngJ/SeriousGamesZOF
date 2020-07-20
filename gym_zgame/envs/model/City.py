@@ -267,6 +267,8 @@ class City:
         for nbh_index in range(len(self.neighborhoods)):
             nbh = self.neighborhoods[nbh_index]
             nbh.local_fear += int(self.nbh_delta_local_fear_values[nbh_index] + .9)
+            if nbh.local_fear < 0:
+                nbh.local_fear = 0
             print(nbh.local_fear)
         if self.fear < 0:
             self.fear = 0
