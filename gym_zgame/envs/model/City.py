@@ -180,7 +180,10 @@ class City:
         self.num_sickly = num_sickly
 
     def get_delta(self):
-        return {keys: self.get_data()[keys]-self.prev_stats[keys] for keys in self.prev_stats}
+        delta = {keys: self.get_data()[keys]-self.prev_stats[keys] for keys in self.prev_stats}
+        delta[delta_fear] = self.delta_fear
+        delta[delta_resources] = self.delta_resources
+        return delta
 
     def do_turn(self, actions):
         self.prev_stats = self.get_data()
