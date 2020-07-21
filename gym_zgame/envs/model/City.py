@@ -228,10 +228,10 @@ class City:
             DEPLOYMENTS.Z_CURE_CENTER_FDA : [1,0],
             DEPLOYMENTS.Z_CURE_CENTER_EXP : [1,1],
             DEPLOYMENTS.FLU_VACCINE_MAN : [1,1],
-            DEPLOYMENTS.BROADCAST_DONT_PANIC : [1,0],
+            DEPLOYMENTS.BROADCAST_DONT_PANIC : [-1,0],
             DEPLOYMENTS.BROADCAST_CALL_TO_ARMS : [1,0],
             DEPLOYMENTS.SNIPER_TOWER_FREE : [1,0],
-            DEPLOYMENTS.PHEROMONES_MEAT : [1,1],
+            DEPLOYMENTS.PHEROMONES_MEAT : [-1,1],
             DEPLOYMENTS.BSL4LAB_SAFETY_OFF : [0,-2],
             DEPLOYMENTS.RALLY_POINT_FULL : [1,0],
             DEPLOYMENTS.FIREBOMB_PRIMED : [1,0],
@@ -652,20 +652,15 @@ class City:
         return city_data
 
     def _mask_visible_data(self, value):
-            # Don't report out (to user and in state) the actual values, instead, bin them into none, few, and many
-            if value < self.fear:  # [0, fear] inclusive, also, handles negative values (which shouldn't happen)
-                return LEVELS.NONE
-            elif value < (self.num_npcs * 0.5) + self.fear:  # [fear + 1, half population + fear]
-                return LEVELS.FEW
-            else:  # else [half population + fear + 1, total population], also handles values that are too large
-                return LEVELS.MANY
+            offset_amount = min(value, int(self.fear / 150 * value))
+            return random.randint(value - offset_amount, value + offset_amount)
 
     def _show_data(self, value):
         #Decides which data to show
         if self.developer_mode:
             return value
         else:
-            return self._mask_visible_data(value).name
+            return self._mask_visible_data(value)
 
 
     def rl_encode(self):
@@ -688,10 +683,10 @@ class City:
             nbh_data = nbh.get_data()
             state[i + 1, 0] = nbh_data.get('original_alive', 0)  # i + 1 since i starts at 0 and 0 is already filled
             state[i + 1, 1] = nbh_data.get('original_dead', 0)
-            state[i + 1, 2] = self._mask_visible_data(nbh_data.get('num_active', 0)).value
-            state[i + 1, 3] = self._mask_visible_data(nbh_data.get('num_sickly', 0)).value
-            state[i + 1, 4] = self._mask_visible_data(nbh_data.get('num_zombie', 0)).value
-            state[i + 1, 5] = self._mask_visible_data(nbh_data.get('num_dead', 0)).value
+            state[i + 1, 2] = self._mask_visible_data(nbh_data.get('num_active', 0))
+            state[i + 1, 3] = self._mask_visible_data(nbh_data.get('num_sickly', 0))
+            state[i + 1, 4] = self._mask_visible_data(nbh_data.get('num_zombie', 0))
+            state[i + 1, 5] = self._mask_visible_data(nbh_data.get('num_dead', 0))
             for j in range(len(nbh.deployments)):
                 state[i + 1, j + 6] = nbh.deployments[j].value
 
