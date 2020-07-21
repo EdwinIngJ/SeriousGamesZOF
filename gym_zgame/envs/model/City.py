@@ -49,7 +49,9 @@ class City:
         self.num_active = 0
         self.num_sickly = 0
         self.update_summary_stats()
-        self.prev_stats = None
+        self.turn_desc = False
+        self.turn_description_info = []
+        self.temp_data = {}
 
     def _init_neighborhoods(self, loc_npc_range):
         center = Neighborhood('CENTER', LOCATIONS.CENTER,
@@ -179,14 +181,8 @@ class City:
         self.num_active = num_active
         self.num_sickly = num_sickly
 
-    def get_delta(self):
-        delta = {keys: self.get_data()[keys]-self.prev_stats[keys] for keys in self.prev_stats}
-        delta[delta_fear] = self.delta_fear
-        delta[delta_resources] = self.delta_resources
-        return delta
-
     def do_turn(self, actions):
-        self.prev_stats = self.get_data()
+        self.temp_data = self.get_data()
         loc_1 = actions[0][0]  # Unpack for readability
         dep_1 = actions[0][1]  # Unpack for readability
         loc_2 = actions[1][0]  # Unpack for readability
@@ -214,7 +210,7 @@ class City:
         self.resources += 1
         self.fear -= 1 if self.fear > 0 else 0
         self.turn += 1
-        self.get_delta()
+        self._create_turndesc_elem(self.temp_data,self.get_data())
         return score, done
 
     def _add_buildings_to_locations(self, nbh_1_index, dep_1, nbh_2_index, dep_2):
@@ -640,7 +636,7 @@ class City:
 
     def get_data(self):
         self.update_summary_stats()
-        city_data = {'score': self.get_score(),
+        city_data = {'total_score': self.total_score,
                      'fear': self.fear,
                      'resources': self.resources,
                      'num_npcs': self.num_npcs,
@@ -780,6 +776,7 @@ class City:
                        ["Sickly"] + [self._show_data(nbh.num_sickly) for nbh in self.neighborhoods],
                        ["Zombies"] + [self._show_data(nbh.num_zombie) for nbh in self.neighborhoods],
                        ["Dead"] + [self._show_data(nbh.num_dead) for nbh in self.neighborhoods],
+                       ["Dead Ashen"] + [nbh.num_ashen for nbh in self.neighborhoods],
                        ["Living at Start"] + [nbh.orig_alive for nbh in self.neighborhoods],
                        ["Dead at Start"] + [nbh.orig_dead for nbh in self.neighborhoods]]
         city = city_status(information)
@@ -789,6 +786,16 @@ class City:
         fancy_string += ebuffer
         print(fancy_string)
         return fancy_string
+
+    def _create_turndesc_elem(self, prev_stats, curr_stats):
+        turn_container = {}
+        #Calculates the changes and adds them to the dictionary with the stats for that turn
+        #To add: local fear, events
+        for k, v in prev_stats.items():
+            turn_container["delta_"+k] = curr_stats[k]-prev_stats[k]
+        turn_container.update(prev_stats)
+        self.turn_description_info.append(turn_container)
+        print(self.turn_description_info)
 
     @staticmethod
     def _get_new_location(old_location, npc_action):
