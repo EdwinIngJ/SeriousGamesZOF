@@ -181,7 +181,7 @@ class City:
         self.num_sickly = num_sickly
 
     def do_turn(self, actions):
-        self.temp_data = self.get_data()
+        self.temp_data = self._get_turn_desc_data()
         loc_1 = actions[0][0]  # Unpack for readability
         dep_1 = actions[0][1]  # Unpack for readability
         loc_2 = actions[1][0]  # Unpack for readability
@@ -209,7 +209,7 @@ class City:
         self.resources += 1
         self.fear -= 1 if self.fear > 0 else 0
         self.turn += 1
-        self._create_turndesc_elem(self.temp_data,self.get_data())
+        self._create_turn_desc(self.temp_data,self._get_turn_desc_data())
         return score, done
 
     def _add_buildings_to_locations(self, nbh_1_index, dep_1, nbh_2_index, dep_2):
@@ -775,7 +775,7 @@ class City:
                        ["Sickly"] + [self._show_data(nbh.num_sickly) for nbh in self.neighborhoods],
                        ["Zombies"] + [self._show_data(nbh.num_zombie) for nbh in self.neighborhoods],
                        ["Dead"] + [self._show_data(nbh.num_dead) for nbh in self.neighborhoods],
-                       ["Dead Ashen"] + [nbh.num_ashen for nbh in self.neighborhoods],
+                       ["Dead Ashen"] + [self._show_data(nbh.num_ashen) for nbh in self.neighborhoods],
                        ["Living at Start"] + [nbh.orig_alive for nbh in self.neighborhoods],
                        ["Dead at Start"] + [nbh.orig_dead for nbh in self.neighborhoods]]
         city = city_status(information)
@@ -786,12 +786,28 @@ class City:
         print(fancy_string)
         return fancy_string
 
-    def _create_turndesc_elem(self, prev_stats, curr_stats):
+    def _get_turn_desc_data(self):
+        self.update_summary_stats()
+        turn_desc_data = {}
+        turn_desc_data['total_score'] = self.total_score
+        turn_desc_data['fear'] = self.fear
+        turn_desc_data['resources'] = self.resources
+        #Might need to resolve how to access it with lists
+        for i in range(len(self.neighborhoods)):
+            nbh = self.neighborhoods[i]
+            turn_desc_data[nbh.location.name + '_num_active'] = nbh.num_active
+            turn_desc_data[nbh.location.name + '_num_sickly'] = nbh.num_sickly
+            turn_desc_data[nbh.location.name + '_num_zombie'] = nbh.num_zombie
+            turn_desc_data[nbh.location.name + '_num_dead'] = nbh.num_dead
+            turn_desc_data[nbh.location.name + '_num_ashen'] = nbh.num_ashen
+        return turn_desc_data
+
+    def _create_turn_desc(self, prev_stats, curr_stats):
         turn_container = {}
         #Calculates the changes and adds them to the dictionary with the stats for that turn
         #To add: local fear, events
         for k, v in prev_stats.items():
-            turn_container["delta_"+k] = curr_stats[k]-prev_stats[k]
+            turn_container["delta_"+k] = curr_stats[k]-v
         turn_container.update(prev_stats)
         self.turn_description_info.append(turn_container)
         print(self.turn_description_info)
