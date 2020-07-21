@@ -96,8 +96,7 @@ class City:
                                   {LOCATIONS.S: NPC_ACTIONS.E,
                                    LOCATIONS.W: NPC_ACTIONS.N},
                                   random.randrange(loc_npc_range[0], loc_npc_range[1], 1), developer_mode=self.developer_mode)
-        self.neighborhoods = [center, north, south, east, west,
-                              north_east, north_west, south_east, south_west]
+        self.neighborhoods = [north_west, north, north_east, west, center, east, south_west, south, south_east]
 
     def _init_neighborhood_threats(self):
         # Add 10 dead in a random location
