@@ -730,7 +730,7 @@ class City:
 
         # Include global stats
         global_stats = PBack.purple + '#####################################  GLOBAL STATUS  ######################################' + PBack.reset + '\n'
-        global_stats += ' Turn: {0} of {1}'.format(self.turn, self.max_turns).ljust(42) + 'Turn Score: {0} (Total Score: {1})'.format(self.get_score(), self.total_score) + '\n'
+        global_stats += ' Turn: {0} of {1}'.format(self.turn, self.max_turns).ljust(42) + 'Turn Score: {0} (Total Score: {1})'.format(self.score, self.total_score) + '\n'
         global_stats += ' Fear: {}'.format(self.fear).ljust(42) + 'Living at Start: {}'.format(self.orig_alive) + '\n'
         global_stats += ' Resources: {}'.format(self.resources).ljust(42) + 'Dead at Start: {}'.format(self.orig_dead) + '\n'
         global_stats += PBack.purple + '############################################################################################' + PBack.reset + '\n'
@@ -788,26 +788,21 @@ class City:
 
     def _get_turn_desc_data(self):
         self.update_summary_stats()
+        #Capture Global Data
         turn_desc_data = {}
-        turn_desc_data['total_score'] = self.total_score
-        turn_desc_data['fear'] = self.fear
-        turn_desc_data['resources'] = self.resources
-        #Might need to resolve how to access it with lists
+        turn_desc_data["Global"] = [self.total_score,self.fear,self.resources]
+        #Capture Neighborhood Data
         for i in range(len(self.neighborhoods)):
             nbh = self.neighborhoods[i]
-            turn_desc_data[nbh.location.name + '_num_active'] = nbh.num_active
-            turn_desc_data[nbh.location.name + '_num_sickly'] = nbh.num_sickly
-            turn_desc_data[nbh.location.name + '_num_zombie'] = nbh.num_zombie
-            turn_desc_data[nbh.location.name + '_num_dead'] = nbh.num_dead
-            turn_desc_data[nbh.location.name + '_num_ashen'] = nbh.num_ashen
+            turn_desc_data[nbh.location.name] =[nbh.num_active, nbh.num_sickly, nbh.num_zombie, nbh.num_dead, nbh.num_ashen]
         return turn_desc_data
 
     def _create_turn_desc(self, prev_stats, curr_stats):
         turn_container = {}
-        #Calculates the changes and adds them to the dictionary with the stats for that turn
+        #Calculates the changes and adds them to the dictionary along with the statistics for that turn
         #To add: local fear, events
         for k, v in prev_stats.items():
-            turn_container["delta_"+k] = curr_stats[k]-v
+            turn_container["delta_"+k] = [curr_stats[k][i]-v[i] for i in range(len(v))]
         turn_container.update(prev_stats)
         self.turn_description_info.append(turn_container)
         print(self.turn_description_info)
