@@ -811,7 +811,7 @@ class City:
         #Capture Neighborhood Data
         for i in range(len(self.neighborhoods)):
             nbh = self.neighborhoods[i]
-            turn_desc_data[nbh.location.name] =[nbh.num_active, nbh.num_sickly, nbh.num_zombie, nbh.num_dead, nbh.num_ashen, nbh.local_fear]
+            turn_desc_data[nbh.location.name] = [nbh.num_active, nbh.num_sickly, nbh.num_zombie, nbh.num_dead, nbh.num_ashen, nbh.local_fear]
         return turn_desc_data
 
     def _create_turn_desc(self, prev_stats, curr_stats):
@@ -822,7 +822,9 @@ class City:
             turn_container["delta_"+k] = [curr_stats[k][i]-v[i] for i in range(len(v))]
         turn_container.update(prev_stats)
         self.turn_description_info.append(turn_container)
-        print(self.turn_description_info)
+
+    def get_turn_desc(self):
+        return self.turn_description_info
 
     @staticmethod
     def _get_new_location(old_location, npc_action):
