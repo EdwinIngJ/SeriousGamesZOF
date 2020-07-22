@@ -220,6 +220,14 @@ class City:
         self._update_global_states()
         self._update_artificial_states()
         self._update_natural_states()
+        self._update_deployment_states()
+
+    def _update_deployment_states(self):
+        for nbh in self.neighborhoods:
+            for dep_index in range(len(nbh.deployments)):
+                dep = nbh.deployments[dep_index]
+                if dep is DEPLOYMENTS.FIREBOMB_BARRAGE:
+                    nbh.deployments[dep_index] = DEPLOYMENTS.FIREBOMB_PRIMED
 
     def _update_trackers(self):
         # Update fear and resources increments
