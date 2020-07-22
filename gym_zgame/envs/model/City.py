@@ -667,16 +667,16 @@ class City:
                      'original_dead': self.orig_dead}
         return city_data
 
-    def _mask_visible_data(self, value):
-            offset_amount = min(value, int(self.fear / 200 * value))
+    def _mask_visible_data(self, nbh_fear, value):
+            offset_amount = min(value, int(nbh_fear / 150 * value)) #The offset value
             return random.randint(value - offset_amount, value + offset_amount)
 
-    def _show_data(self, value):
+    def _show_data(self, nbh_fear, value):
         #Decides which data to show
         if self.developer_mode:
             return value
         else:
-            return self._mask_visible_data(value)
+            return self._mask_visible_data(nbh_fear, value)
 
 
     def rl_encode(self):
@@ -777,10 +777,10 @@ class City:
             text += add_under_location_symbol_text(information_bottom_statistics)
             text += PBack.blue + '============================================================================================' + PBack.reset + '\n'
             return text
-        information = [["Active"] + [self._show_data(nbh.num_active) for nbh in self.neighborhoods],
-                       ["Sickly"] + [self._show_data(nbh.num_sickly) for nbh in self.neighborhoods],
-                       ["Zombies"] + [self._show_data(nbh.num_zombie) for nbh in self.neighborhoods],
-                       ["Dead"] + [self._show_data(nbh.num_dead) for nbh in self.neighborhoods],
+        information = [["Active"] + [self._show_data(nbh.local_fear, nbh.num_active) for nbh in self.neighborhoods],
+                       ["Sickly"] + [self._show_data(nbh.local_fear, nbh.num_sickly) for nbh in self.neighborhoods],
+                       ["Zombies"] + [self._show_data(nbh.local_fear, nbh.num_zombie) for nbh in self.neighborhoods],
+                       ["Dead"] + [self._show_data(nbh.local_fear, nbh.num_dead) for nbh in self.neighborhoods],
                        ["Living at Start"] + [nbh.orig_alive for nbh in self.neighborhoods],
                        ["Dead at Start"] + [nbh.orig_dead for nbh in self.neighborhoods],
                        ["Local Fear"] + [nbh.local_fear for nbh in self.neighborhoods]]
