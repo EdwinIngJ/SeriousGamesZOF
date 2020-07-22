@@ -5,7 +5,7 @@ from ZGameHumanPlay import ZGame
 parser = argparse.ArgumentParser(description='CLI Argument Parser for Human Play.')
 parser.add_argument('--outfile', help='Data logging file name.', default='data_log.json')
 parser.add_argument('--creation', help='Allow creation of output file.', default=False, action='store_true')
-parser.add_argument('--dev', help='Activates Developer Mode', default=True, action='store_true')
+parser.add_argument('--dev', help='Activates Developer Mode', default=False, action='store_true')
 
 def validate_data(out_file, allow_creation=False):
     if allow_creation and not os.path.exists(out_file):
