@@ -1,5 +1,7 @@
 import tkinter as tk
-
+import gym
+import gym_zgame
+from gym_zgame.envs.enums.PLAYER_ACTIONS import LOCATIONS, DEPLOYMENTS
 HEIGHT = 620
 WIDTH  = 1250
 root = tk.Tk()
@@ -57,42 +59,10 @@ DeployFrame = tk.Label(frame, bg = 'gray', bd = 5)
 DeployFrame.place(relwidth= 0.25, relheight= 0.99) #frame to hold the 25 Deployment buttons
 
 ###The 25 Buttons ###
-NoDeploy = tk.Button(DeployFrame, text = "No Depoloyment", font = ('Courier', 7))
-NoDeploy.place(relwidth = 1)
 
-QuarantineOpen = tk.Button(DeployFrame, text = "Quarantine Open", font = ('Courier', 7))
-QuarantineOpen.place(rely = 0.04, relwidth = 1)
-
-QuarantineFenced = tk.Button(DeployFrame, text = "Quarantine Fenced", font = ('Courier', 7))
-QuarantineFenced.place(rely = 0.08, relwidth = 1)
-
-BiteCenterDisinfect = tk.Button(DeployFrame, text = "Bite Center Disinfect", font = ('Courier', 7))
-BiteCenterDisinfect.place(rely = 0.12, relwidth = 1)
-
-BiteCenterAmputate = tk.Button(DeployFrame, text = "Bite Center Amputate", font = ('Courier', 7))
-BiteCenterAmputate.place(rely = 0.16, relwidth = 1)
-
-ZCureFDA = tk.Button(DeployFrame, text = "Z Cure (FDA)", font = ('Courier', 7))
-ZCureFDA.place(rely = 0.2, relwidth = 1)
-
-ZCureEXP = tk.Button(DeployFrame, text = "Z Cure (EXP)", font = ('Courier', 7))
-ZCureEXP.place(rely = 0.24, relwidth = 1)
-
-FluVaccOpt = tk.Button(DeployFrame, text = "Flu Vaccine (Optional)", font = ('Courier', 7))
-FluVaccOpt.place(rely = 0.28, relwidth = 1)
-
-FluVaccMan = tk.Button(DeployFrame, text = "Flu Vaccine (Mandatory)", font = ('Courier', 7))
-FluVaccMan.place(rely = 0.32, relwidth = 1)
-
-KilnOVersight = tk.Button(DeployFrame, text = "Kiln (Oversight)", font = ('Courier', 7))
-KilnOVersight.place(rely = 0.36, relwidth = 1)
-
-KilnNoQ = tk.Button(DeployFrame, text = "Kiln (No Questions)", font = ('Courier', 7))
-KilnNoQ.place(rely = 0.4, relwidth = 1)
-
-BroadcastDontPanic = tk.Button(DeployFrame, text = "Broadcast Dont Panic", font = ('Courier', 7))
-BroadcastDontPanic.place(rely = 0.44, relwidth = 1)
-
+for i in range(25):
+    button = tk.Button(DeployFrame, text = DEPLOYMENTS(i).name, font = ('Courier', 7))
+    button.place(rely = i * 0.04, relwidth = 1)
 
 
 root.mainloop()
