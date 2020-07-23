@@ -3,7 +3,6 @@ from gym_zgame.envs.enums.PLAYER_ACTIONS import LOCATIONS, DEPLOYMENTS
 from gym_zgame.envs.enums.NPC_STATES import NPC_STATES_DEAD, NPC_STATES_ZOMBIE, NPC_STATES_FLU
 from gym_zgame.envs.model.NPC import NPC
 
-
 class Neighborhood:
 
     def __init__(self, id, location, adj_locations, num_init_npcs,developer_mode=False):
@@ -14,7 +13,12 @@ class Neighborhood:
         self.adj_locations = adj_locations
         self._npc_init(num_init_npcs)
         self.deployments = []
+        self.local_fear = 0
         # Transition probabilities
+        self.gathering_enabled = False
+        self.checkForEvents()
+        self.event_probs = None
+        self.compute_event_probs()
         self.trans_probs = self.compute_baseline_trans_probs()
         # Keep summary stats up to date for ease
         self.num_npcs = len(self.NPCs)
@@ -31,7 +35,6 @@ class Neighborhood:
         self.num_moving = 0
         self.num_active = 0
         self.num_sickly = 0
-        self.local_fear = 0
         self.update_summary_stats()
         self.orig_alive, self.orig_dead = self._get_original_state_metrics()
 
@@ -55,8 +58,36 @@ class Neighborhood:
         og_alive += self.num_alive
         og_dead += self.num_dead
         return og_alive, og_dead
-
+    
+    def compute_event_probs(self):
+        self.event_probs = {
+            'burial': 0,
+            'recover': 0,
+            'pneumonia': 0,
+            'incubate': 0,
+            'fumes': 0,
+            'cough': 0,
+            'mutate': 0,
+            'turn': 0,
+            'devour': 0,
+            'bite': 0,
+            'fight_back': 0,
+            'collapse': 0,
+            'rise': 0
+        }
+        if self.gathering_enabled:
+            changes = [#changes to be made to event_multipliers
+                ['cough', .25],
+                ['incubate', .1],
+                ['fight_back', .15],
+                ['devour', -.1],
+                ['bite', .15]
+            ]
+            for change in changes:
+                self.event_probs[change[0]] += change[1]
+                
     def compute_baseline_trans_probs(self):
+        self.compute_event_probs()
         self.update_summary_stats()
         trans_probs = {
             'burial': (self.num_active / self.num_dead) * 0.1 if self.num_dead > 0 else 0,  # dead -> ashen
@@ -73,6 +104,10 @@ class Neighborhood:
             'collapse': 0.1,  # zombie -> dead
             'rise': 0.1  # dead -> zombie
         }
+        
+        for prob in self.event_probs:
+            trans_probs[prob] = max(min(1, trans_probs[prob] + self.event_probs[prob]), 0)
+            
         return trans_probs
 
     def add_NPC(self, NPC):
@@ -97,10 +132,15 @@ class Neighborhood:
     def clean_all_bags(self):
         for npc in self.NPCs:
             npc.clean_bag(self.location)
-
+            
+    def add_to_all_npc_bags(self, action, amount_to_add):
+        for npc in self.NPCs:
+            for _ in range(amount_to_add): 
+                npc.add_to_bag(action)
+                
     def add_deployment(self, deployment):
         self.deployments.append(deployment)
-
+        
     def add_deployments(self, deployments):
         self.deployments.extend(deployments)
 
@@ -195,6 +235,11 @@ class Neighborhood:
                              'deployments': self.deployments}
         return neighborhood_data
 
+    def checkForEvents(self):
+        if (9 <= self.num_alive and 20 >= self.local_fear):
+            self.gathering_enabled = True
+        else:
+            self.gathering_enabled = False
 
 if __name__ == '__main__':
     nb = Neighborhood('CENTER', LOCATIONS.CENTER, (LOCATIONS.N, LOCATIONS.S, LOCATIONS.W, LOCATIONS.E), 10)
