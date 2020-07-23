@@ -38,40 +38,26 @@ class ZGame:
     def _cleanup(self):
         self.env.close()
 
+    def _read_action(self, location_or_deployment, input_number):
+        print('Input Action - ' + location_or_deployment.title() + ' ' + input_number + ':')
+        user_input = input()
+        number_of_locations_or_deployments = len(LOCATIONS) if location_or_deployment == "location" else len(DEPLOYMENTS)
+        while not(user_input.isdigit()) or int(user_input) not in range(0, number_of_locations_or_deployments):
+            print(location_or_deployment.title() + " must be a value between 0 and " + str(number_of_locations_or_deployments - 1) + ". Please enter a valid " + location_or_deployment + ".")
+            user_input = input()
+        return int(user_input)
+    
     def run(self):
         print('Starting new game with human play!')
         self.env.reset()
         self.env.render(mode='human')
         for turn in range(self.max_turns):
             self.env.print_player_action_selections()
-                                                       
-            print('Input Action - Location 1:')
-            location_1 = input()
-            while not(location_1.isdigit()) or int(location_1) not in range(0,len(LOCATIONS)):
-                print('Location must be a value between 0-'+str(len(LOCATIONS)-1)+'. Please enter a valid location.')
-                location_1 = input()
-            location_1 = int(location_1)
-            
-            print('Input Action - Deployment 1:')
-            deployment_1 = input()
-            while not(deployment_1.isdigit()) or int(deployment_1) not in range(0,len(DEPLOYMENTS)):
-                print('Deployment must be a value between 0-'+str(len(DEPLOYMENTS)-1)+'. Please enter a valid deployment number:')
-                deployment_1 = input()
-            deployment_1 = int(deployment_1)
-            
-            print('Input Action - Location 2:')
-            location_2 = input()
-            while not(location_2.isdigit()) or int(location_2) not in range(0,len(LOCATIONS)):
-                print('Location must be a value between 0-'+str(len(LOCATIONS)-1)+'. Please enter a valid location:')
-                location_2 = input()
-            location_2 = int(location_2)
-            
-            print('Input Action - Deployment 2:')
-            deployment_2 = input()
-            while not(deployment_2.isdigit()) or int(deployment_2) not in range(0,len(DEPLOYMENTS)):
-                print('Deployment must be a value between 0-'+str(len(DEPLOYMENTS)-1)+'. Please enter a valid deployment number:')
-                deployment_2 = input()
-            deployment_2 = int(deployment_2)
+
+            location_1 = self._read_action("location", "1")
+            deployment_1 = self._read_action("deployment", "1")
+            location_2 = self._read_action("location", "2")
+            deployment_2 = self._read_action("deployment", "2")
                 
             actions = self.env.encode_raw_action(location_1=LOCATIONS(location_1),
                                                  deployment_1=DEPLOYMENTS(deployment_1),

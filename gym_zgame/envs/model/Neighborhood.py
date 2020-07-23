@@ -31,19 +31,21 @@ class Neighborhood:
         self.num_moving = 0
         self.num_active = 0
         self.num_sickly = 0
+        self.local_fear = 0
         self.update_summary_stats()
         self.orig_alive, self.orig_dead = self._get_original_state_metrics()
 
     def _npc_init(self, num_npcs):
         init_npcs = []
+        #There is a 10% chance for the NPC to be a zombie and/or have the flu
         for _ in range(num_npcs):
             npc = NPC()
             zombie_chance = random.uniform(0, 1)
             flu_chance = random.uniform(0, 1)
             if zombie_chance >= 0.9:
-                npc.state_zombie = NPC_STATES_ZOMBIE.ZOMBIE
+                npc.change_zombie_state(NPC_STATES_ZOMBIE.ZOMBIE)
             if flu_chance >= 0.9:
-                npc.state_flu = NPC_STATES_FLU.FLU
+                npc.change_flu_state(NPC_STATES_FLU.FLU)
             init_npcs.append(npc)
         self.add_NPCs(init_npcs)
 
@@ -103,7 +105,7 @@ class Neighborhood:
         self.deployments.extend(deployments)
 
     def destroy_deployments_by_type(self, dep_types):
-        updated_deps = [dep for dep in self.deployments if dep not in dep_types]
+        self.deployments = [dep for dep in self.deployments if dep not in dep_types]
 
     def update_summary_stats(self):
         self.num_npcs = len(self.NPCs)
@@ -173,6 +175,7 @@ class Neighborhood:
         self.update_summary_stats()
         neighborhood_data = {'id': self.id,
                              'location': self.location,
+                             'local_fear': self.local_fear,
                              'num_npcs': self.num_npcs,
                              'num_alive': self.num_alive,
                              'num_dead': self.num_dead,
