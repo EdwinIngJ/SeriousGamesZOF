@@ -668,7 +668,7 @@ class City:
         return city_data
 
     def _mask_visible_data(self, nbh_fear, value):
-            offset_amount = min(.7 * value, int(nbh_fear / 150 * value)) #The offset value
+            offset_amount = min(.85 * value, int(nbh_fear / 75 * value)) #The offset value
             return random.randint(value - offset_amount, value + offset_amount)
 
     def _show_data(self, nbh_fear, value):
