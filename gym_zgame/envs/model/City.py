@@ -692,7 +692,7 @@ class City:
             else:  # else [half population + fear + 1, total population], also handles values that are too large
                 return LEVELS.MANY
 
-    def _show_data(self, value):
+    def show_data(self, value):
         #Decides which data to show
         if self.developer_mode:
             return value
@@ -746,6 +746,73 @@ class City:
         return minimal_report
 
     def human_render(self):
+        # Build up console output
+        header = pf.figlet_format('ZGame Status')
+        fbuffer = PBack.red + '--------------------------------------------------------------------------------------------' + PBack.reset + '\n' + header + \
+                  PBack.red + '********************************************************************************************' + PBack.reset + '\n'
+        ebuffer = PBack.red + '********************************************************************************************' + PBack.reset + '\n' + \
+                  PBack.red + '--------------------------------------------------------------------------------------------' + PBack.reset + '\n'
+
+        fancy_string = PControl.cls + PControl.home + fbuffer
+
+        # Include global stats
+        global_stats = PBack.purple + '#####################################  GLOBAL STATUS  ######################################' + PBack.reset + '\n'
+        global_stats += ' Turn: {0} of {1}'.format(self.turn, self.max_turns).ljust(42) + 'Turn Score: {0} (Total Score: {1})'.format(self.get_score(), self.total_score) + '\n'
+        global_stats += ' Fear: {}'.format(self.fear).ljust(42) + 'Living at Start: {}'.format(self.orig_alive) + '\n'
+        global_stats += ' Resources: {}'.format(self.resources).ljust(42) + 'Dead at Start: {}'.format(self.orig_dead) + '\n'
+        global_stats += PBack.purple + '############################################################################################' + PBack.reset + '\n'
+        fancy_string += global_stats
+
+        # Include city stats
+        def add_under_location_symbol_text(information): #2-D Array of [[statistic_name, data for each neighborhood in one row] for each statistic]
+            text = ""
+            for statistic_type in information:
+                for nbh_information in statistic_type[1:]:
+                    text += PBack.blue + '==' + PBack.reset + ' {}: {}'.format(statistic_type[0], nbh_information).ljust(28)
+                text += PBack.blue + '==' + PBack.reset + '\n'
+            return text
+        def location_line_symbol_text(information): #Array of [top line statistic_name, (data, neighborhood symbol) for each neighborhood in one row]
+            text = ""
+            for nbh_information in information[1:]:
+                text += PBack.blue + '==' + PBack.reset + ' {}: {}'.format(information[0], nbh_information[0]).ljust(23) + \
+                        PFont.bold + PFont.underline + PFore.purple + '{}'.format(nbh_information[1]) + PControl.reset + ' '
+            text += PBack.blue + '==' + PBack.reset + '\n'
+            return text
+        def city_status(information): # 2-D Array of [[statistic_name, data for nbh1, data for nbh2, ...] for each statistic]
+            symbols = ["  ", "(NW)", " (N)", "(NE)", " (W)", " (C)", " (E)", "(SW)", " (S)", "(SE)"]
+            information_top_location_line = [information[0][0]] + [(information[0][i], symbols[i]) for i in range(1,4)]
+            information_top_statistics = [([information[i][0]] + [information[i][j] for j in range(1,4)]) for i in range(1,len(information))]
+            information_center_location_line = [information[0][0]] + [(information[0][i], symbols[i]) for i in range(4,7)]
+            information_center_statistics = [([information[i][0]] + [information[i][j] for j in range(4,7)]) for i in range(1,len(information))]
+            information_bottom_location_line = [information[0][0]] + [(information[0][i], symbols[i]) for i in range(7,10)]
+            information_bottom_statistics = [([information[i][0]] + [information[i][j] for j in range(7,10)]) for i in range(1,len(information))]
+
+            text = PBack.blue + '=====================================  CITY STATUS  ========================================' + PBack.reset + '\n'
+            text += location_line_symbol_text(information_top_location_line)
+            text += add_under_location_symbol_text(information_top_statistics)
+            text += PBack.blue + '============================================================================================' + PBack.reset + '\n'
+            text += location_line_symbol_text(information_center_location_line)
+            text += add_under_location_symbol_text(information_center_statistics)
+            text += PBack.blue + '============================================================================================' + PBack.reset + '\n'
+            text += location_line_symbol_text(information_bottom_location_line)
+            text += add_under_location_symbol_text(information_bottom_statistics)
+            text += PBack.blue + '============================================================================================' + PBack.reset + '\n'
+            return text
+        #Information is what's printed for each neighborhood
+        #It should be in the form of [statistic_name, statistc data for neighborhoodNW, N, NE, W, ...
+        information = [["Active"] + [self.show_data(nbh.num_active) for nbh in self.neighborhoods],
+                       ["Sickly"] + [self.show_data(nbh.num_sickly) for nbh in self.neighborhoods],
+                       ["Zombies"] + [self.show_data(nbh.num_zombie) for nbh in self.neighborhoods],
+                       ["Dead"] + [self.show_data(nbh.num_dead) for nbh in self.neighborhoods],
+                       ["Living at Start"] + [nbh.orig_alive for nbh in self.neighborhoods],
+                       ["Dead at Start"] + [nbh.orig_dead for nbh in self.neighborhoods],
+                       ["Local Fear"] + [nbh.local_fear for nbh in self.neighborhoods]]
+        city = city_status(information)
+        fancy_string += city
+
+        # Close out console output
+        fancy_string += ebuffer
+        print(fancy_string)
         return self.neighborhoods, self.score, self.total_score, self.fear, self.orig_alive, self.orig_dead
 
     @staticmethod
