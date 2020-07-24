@@ -4,7 +4,7 @@ import gym
 import gym_zgame
 from gym_zgame.envs.enums.PLAY_TYPE import PLAY_TYPE
 from gym_zgame.envs.enums.PLAYER_ACTIONS import LOCATIONS, DEPLOYMENTS
-
+from GUI import *
 
 class ZGame:
 
@@ -48,40 +48,8 @@ class ZGame:
         return int(user_input)
     
     def run(self):
-        print('Starting new game with human play!')
-        self.env.reset()
-        self.env.render(mode='human')
-        for turn in range(self.max_turns):
-            self.env.print_player_action_selections()
-
-            location_1 = self._read_action("location", "1")
-            deployment_1 = self._read_action("deployment", "1")
-            location_2 = self._read_action("location", "2")
-            deployment_2 = self._read_action("deployment", "2")
-                
-            actions = self.env.encode_raw_action(location_1=LOCATIONS(location_1),
-                                                 deployment_1=DEPLOYMENTS(deployment_1),
-                                                 location_2=LOCATIONS(location_2),
-                                                 deployment_2=DEPLOYMENTS(deployment_2))
-            observation, reward, done, info = self.env.step(actions)
-            print(info)
-            self.env.render(mode='human')
-
-            # Write action and stuff out to disk.
-            data_to_log = {
-                'game_id': str(self.GAME_ID),
-                'step': self.turn,
-                'actions': actions,
-                'reward': reward,
-                'game_done': done,
-                'game_info': {k.replace('.', '_'): v for (k, v) in info.items()},
-                'raw_state': observation
-            }
-            with open(self.DATA_LOG_FILE_NAME, 'a') as f_:
-                f_.write(json.dumps(data_to_log) + '\n')
-
-            # Update counter
-            self.turn += 1
-            if done:
-                self.done()
-                break
+        #Instantiating GUI
+        root = Tk()
+        user_interface = GUI(root,self)
+        root.mainloop()
+        
