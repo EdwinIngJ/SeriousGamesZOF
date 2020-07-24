@@ -212,7 +212,7 @@ class City:
             nbh.local_fear -= 1 if nbh.local_fear > 0 else 0
         self.fear -= 1 if self.fear > 0 else 0
         self.turn += 1
-        self._create_turn_desc(self.temp_data,self._get_turn_desc_data())
+        self._create_turn_desc(self.temp_data,self._get_turn_desc_data(), actions)
         return score, done
 
     def _add_buildings_to_locations(self, nbh_1_index, dep_1, nbh_2_index, dep_2):
@@ -815,26 +815,27 @@ class City:
         # Close out console output
         fancy_string += ebuffer
         print(fancy_string)
-        return self.neighborhoods, self.score, self.total_score, self.fear, self.orig_alive, self.orig_dead
+        return self.neighborhoods, self.score, self.total_score, self.fear, self.orig_alive, self.orig_dead, self.turn_description_info
 
     def _get_turn_desc_data(self):
         self.update_summary_stats()
         #Capture Global Data
         turn_desc_data = {}
-        turn_desc_data["Global"] = [self.total_score,self.fear,self.resources]
+        turn_desc_data["Global"] = [self.turn, self.total_score,self.fear,self.resources]
         #Capture Neighborhood Data
         for i in range(len(self.neighborhoods)):
             nbh = self.neighborhoods[i]
-            turn_desc_data[nbh.location.name] = [nbh.num_active, nbh.num_sickly, nbh.num_zombie, nbh.num_dead, nbh.num_ashen, nbh.local_fear]
+            turn_desc_data[nbh.location.name] = [nbh.num_active, nbh.num_sickly, nbh.num_zombie, nbh.num_dead, nbh.num_ashen, nbh.orig_alive, nbh.orig_dead, nbh.local_fear]
         return turn_desc_data
 
-    def _create_turn_desc(self, prev_stats, curr_stats):
+    def _create_turn_desc(self, prev_stats, curr_stats, actions):
         turn_container = {}
         #Calculates the changes and adds them to the dictionary along with the statistics for that turn
         #To add: local fear, events
         for k, v in prev_stats.items():
             turn_container["delta_"+k] = [curr_stats[k][i]-v[i] for i in range(len(v))]
         turn_container.update(prev_stats)
+        turn_container.update({"actions" : actions})
         self.turn_description_info.append(turn_container)
 
     def get_turn_desc(self):

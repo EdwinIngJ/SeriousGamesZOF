@@ -15,7 +15,7 @@ class GUI(Frame):
         self.env.reset()
         self.turn = zgame.turn
         self.max_turns = zgame.max_turns
-        self.neighborhoods, self.score, self.total_score, self.fear, self.orig_alive, self.orig_dead = self.env.render(mode='human')
+        self.neighborhoods, self.score, self.total_score, self.fear, self.orig_alive, self.orig_dead, self.turn_description_info = self.env.render(mode='human')
         self.deployments_action = []
         self.locations_action = []
         #Constants
@@ -135,11 +135,49 @@ class GUI(Frame):
         self.NotifBar['text'] = " Location: " + LOCATIONS(location).name
 
     def open_log(self): ###the notif bar opens the data log
-        top = Toplevel()
-        top.title('Log')
-        historyLog = Label(top, text = 'aloha', bd = 5)
-        historyLog.place(relwidth = 1, relheight = 1)
+        if self.turn > 0:
+            top = Toplevel()
+            top.title('Log')
+            data_log = self.turn_description_info
+            Turn_num = Label(top, text = data_log[-1]["Global"][0], bd = 5)
+            Turn_num.grid(row=0)
 
+            def format_for_grid(nbh_name):
+                var_names = ["Active","Sickly","Zombies","Dead","Living at Start","Dead at Start","Local Fear"]
+                text = ''
+                for i in range(len(data_log[-1][nbh_name])):
+                    text += '{} : {}'.format(var_names[i], data_log[-1][nbh_name][i]) + '\n'
+                return text
+
+            NWest_turn_desc = Label(top, text = format_for_grid(LOCATIONS.NW.name), bd = 5)
+            NWest_turn_desc.grid(row = 1, column = 0)
+
+            North_turn_desc = Label(top, text = format_for_grid(LOCATIONS.N.name), bd = 5)
+            North_turn_desc.grid(row = 1, column = 1)
+
+            NEast_turn_desc = Label(top, text = format_for_grid(LOCATIONS.NE.name), bd = 5)
+            NEast_turn_desc.grid(row = 1, column = 2)
+
+            West_turn_desc = Label(top, text = format_for_grid(LOCATIONS.W.name), bd = 5)
+            West_turn_desc.grid(row = 2, column = 0)
+
+            Center_turn_desc = Label(top, text = format_for_grid(LOCATIONS.CENTER.name), bd = 5)
+            Center_turn_desc.grid(row = 2, column = 1)
+
+            East_turn_desc = Label(top, text = format_for_grid(LOCATIONS.E.name), bd = 5)
+            East_turn_desc.grid(row = 2, column = 2)
+
+            SWest_turn_desc = Label(top, text = format_for_grid(LOCATIONS.SW.name), bd = 5)
+            SWest_turn_desc.grid(row = 3, column = 0)
+
+            South_turn_desc = Label(top, text = format_for_grid(LOCATIONS.S.name), bd = 5)
+            South_turn_descgrid(row = 3, column = 1)
+
+            SEast_turn_desc = Label(top, text = format_for_grid(LOCATIONS.SE.name), bd = 5)
+            SEast_turn_desc.grid(row = 3, column = 2)
+        else:
+            pass
+        
     def _do_turn(self):
         actions = self.env.encode_raw_action(location_1=LOCATIONS(self.locations_action[0]),
                                                  deployment_1=DEPLOYMENTS(self.deployments_action[0]),
@@ -168,7 +206,7 @@ class GUI(Frame):
         self.update_screen()
     
     def update_screen(self):
-        self.neighborhoods, self.score, self.total_score, self.fear, self.orig_alive, self.orig_dead = self.env.render(mode='human')
+        self.neighborhoods, self.score, self.total_score, self.fear, self.orig_alive, self.orig_dead, self.turn_description_info = self.env.render(mode='human')
         self.create_screen()
         self.deployments_action = []
         self.locations_action = []
