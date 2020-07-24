@@ -51,6 +51,9 @@ class City:
         self.update_summary_stats()
         self.turn_desc = False
         self.turn_description_info = []
+        self.turn_fogged_data = {}
+        for nbh in self.neighborhoods:
+            self.turn_fogged_data[nbh] = []
         self.temp_data = {}
 
     def _init_neighborhoods(self, loc_npc_range):
@@ -688,16 +691,18 @@ class City:
                      'original_dead': self.orig_dead}
         return city_data
 
-    def _mask_visible_data(self, nbh_fear, value):
+    def _mask_visible_data(self, nbh, nbh_fear, value):
             offset_amount = min(.85 * value, int(nbh_fear / 75 * value)) #The offset value
-            return random.randint(value - offset_amount, value + offset_amount)
-
-    def show_data(self, nbh_fear, value):
+            new_value = random.randint(value - offset_amount, value + offset_amount)
+            self.turn_fogged_data[nbh].append(new_value)
+            return new_value
+        
+    def show_data(self, nbh, nbh_fear, value):
         #Decides which data to show
         if self.developer_mode:
             return value
         else:
-            return self._mask_visible_data(nbh_fear, value)
+            return self._mask_visible_data(nbh, nbh_fear, value)
 
 
     def rl_encode(self):
@@ -720,10 +725,10 @@ class City:
             nbh_data = nbh.get_data()
             state[i + 1, 0] = nbh_data.get('original_alive', 0)  # i + 1 since i starts at 0 and 0 is already filled
             state[i + 1, 1] = nbh_data.get('original_dead', 0)
-            state[i + 1, 2] = self._mask_visible_data(nbh.local_fear, nbh_data.get('num_active', 0))
-            state[i + 1, 3] = self._mask_visible_data(nbh.local_fear, nbh_data.get('num_sickly', 0))
-            state[i + 1, 4] = self._mask_visible_data(nbh.local_fear, nbh_data.get('num_zombie', 0))
-            state[i + 1, 5] = self._mask_visible_data(nbh.local_fear, nbh_data.get('num_dead', 0))
+            state[i + 1, 2] = self._mask_visible_data(nbh, nbh.local_fear, nbh_data.get('num_active', 0))
+            state[i + 1, 3] = self._mask_visible_data(nbh, nbh.local_fear, nbh_data.get('num_sickly', 0))
+            state[i + 1, 4] = self._mask_visible_data(nbh, nbh.local_fear, nbh_data.get('num_zombie', 0))
+            state[i + 1, 5] = self._mask_visible_data(nbh, nbh.local_fear, nbh_data.get('num_dead', 0))
             for j in range(len(nbh.deployments)):
                 state[i + 1, j + 6] = nbh.deployments[j].value
 
@@ -802,10 +807,10 @@ class City:
         #Information is what's printed for each neighborhood
         #It should be in the form of [statistic_name, statistc data for neighborhoodNW, N, NE, W, ...
 
-        information = [["Active"] + [self.show_data(nbh.local_fear, nbh.num_active) for nbh in self.neighborhoods],
-                       ["Sickly"] + [self.show_data(nbh.local_fear, nbh.num_sickly) for nbh in self.neighborhoods],
-                       ["Zombies"] + [self.show_data(nbh.local_fear, nbh.num_zombie) for nbh in self.neighborhoods],
-                       ["Dead"] + [self.show_data(nbh.local_fear, nbh.num_dead) for nbh in self.neighborhoods],
+        information = [["Active"] + [self.show_data(nbh, nbh.local_fear, nbh.num_active) for nbh in self.neighborhoods],
+                       ["Sickly"] + [self.show_data(nbh, nbh.local_fear, nbh.num_sickly) for nbh in self.neighborhoods],
+                       ["Zombies"] + [self.show_data(nbh, nbh.local_fear, nbh.num_zombie) for nbh in self.neighborhoods],
+                       ["Dead"] + [self.show_data(nbh, nbh.local_fear, nbh.num_dead) for nbh in self.neighborhoods],
                        ["Living at Start"] + [nbh.orig_alive for nbh in self.neighborhoods],
                        ["Dead at Start"] + [nbh.orig_dead for nbh in self.neighborhoods],
                        ["Local Fear"] + [nbh.local_fear for nbh in self.neighborhoods]]
@@ -825,7 +830,7 @@ class City:
         #Capture Neighborhood Data
         for i in range(len(self.neighborhoods)):
             nbh = self.neighborhoods[i]
-            turn_desc_data[nbh.location.name] = [nbh.num_active, nbh.num_sickly, nbh.num_zombie, nbh.num_dead, nbh.num_ashen, nbh.orig_alive, nbh.orig_dead, nbh.local_fear]
+            turn_desc_data[nbh.location.name] = self.turn_fogged_data[nbh] + [nbh.orig_alive, nbh.orig_dead, nbh.local_fear]
         return turn_desc_data
 
     def _create_turn_desc(self, prev_stats, curr_stats, actions):
