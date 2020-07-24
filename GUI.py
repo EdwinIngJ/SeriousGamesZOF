@@ -138,6 +138,7 @@ class GUI(Frame):
                                                  deployment_2=DEPLOYMENTS(self.deployments_action[1]))
         observation, reward, done, info = self.env.step(actions)
         
+        # Write action and stuff out to disk.
         data_to_log = {
                 'game_id': str(self.GAME_ID),
                 'step': self.turn,
@@ -163,13 +164,10 @@ class GUI(Frame):
         self.deployments_action = []
         self.locations_action = []
 
-
     def done(self):
         print("Episode finished after {} turns".format(self.turn))
         self._cleanup()
 
     def _cleanup(self):
         self.env.close()
-
-            # Write action and stuff out to disk.
             
