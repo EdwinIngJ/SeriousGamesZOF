@@ -52,4 +52,3 @@ class ZGame:
         root = Tk()
         user_interface = GUI(root,self)
         root.mainloop()
-        
