@@ -33,7 +33,7 @@ class GUI(Frame):
         TitleCard.place(relx=0.5, rely=0.001, relwidth=0.49, relheight=0.075, anchor='n')  # header with game title
 
         ###Notification Bar###
-        self.NotifBar = Label(frame, font=('Courier', 9))
+        self.NotifBar = Button(frame, font=('Courier', 9))
         self.NotifBar.place(relx=0.5, rely=0.08, relwidth=0.49, relheight=0.025, anchor='n')
 
         Turn = Label(frame, text = ' Turn: {0} of {1}'.format(self.turn, self.max_turns) , font = ('Courier', 8))
@@ -117,7 +117,7 @@ class GUI(Frame):
             self._do_turn()
         print(self.deployments_action)
 
-        self.NotifBar['text'] = "You deployed " + DEPLOYMENTS(deployment).name
+        self.NotifBar['text'] = "Deployment:  " + DEPLOYMENTS(deployment).name
 
     def add_location(self, location):
         num_d = len(self.deployments_action)
