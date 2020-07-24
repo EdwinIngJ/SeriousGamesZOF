@@ -33,7 +33,7 @@ class GUI(Frame):
         TitleCard.place(relx=0.5, rely=0.001, relwidth=0.49, relheight=0.075, anchor='n')  # header with game title
 
         ###Notification Bar###
-        self.NotifBar = Button(frame, font=('Courier', 9))
+        self.NotifBar = Button(frame, font=('Courier', 9), command = lambda: self.open_log())
         self.NotifBar.place(relx=0.5, rely=0.08, relwidth=0.49, relheight=0.025, anchor='n')
 
         Turn = Label(frame, text = ' Turn: {0} of {1}'.format(self.turn, self.max_turns) , font = ('Courier', 8))
@@ -52,6 +52,7 @@ class GUI(Frame):
         for i in range(25):
             button = Button(DeployFrame, text = DEPLOYMENTS(i).name, font = ('Courier', 7), command=lambda x=i:self.add_deployment(x))
             button.place(rely = i * 0.04, relwidth = 1)
+            
         self.create_neighborhoods()
 
     def create_neighborhoods(self):
@@ -132,7 +133,13 @@ class GUI(Frame):
         print(self.locations_action)
 
         self.NotifBar['text'] = " Location: " + LOCATIONS(location).name
-             
+
+    def open_log(self): ###the notif bar opens the data log
+        top = Toplevel()
+        top.title('Log')
+        historyLog = Label(top, text = 'aloha', bd = 5)
+        historyLog.place(relwidth = 1, relheight = 1)
+
     def _do_turn(self):
         actions = self.env.encode_raw_action(location_1=LOCATIONS(self.locations_action[0]),
                                                  deployment_1=DEPLOYMENTS(self.deployments_action[0]),
