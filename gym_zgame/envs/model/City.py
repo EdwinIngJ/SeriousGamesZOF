@@ -225,6 +225,14 @@ class City:
         self._update_global_states()
         self._update_artificial_states()
         self._update_natural_states()
+        self._update_deployment_states()
+
+    def _update_deployment_states(self):
+        for nbh in self.neighborhoods:
+            for dep_index in range(len(nbh.deployments)):
+                dep = nbh.deployments[dep_index]
+                if dep is DEPLOYMENTS.FIREBOMB_BARRAGE:
+                    nbh.deployments[dep_index] = DEPLOYMENTS.FIREBOMB_PRIMED
 
     def _update_trackers(self):
         # Update fear and resources increments
@@ -236,10 +244,10 @@ class City:
             DEPLOYMENTS.Z_CURE_CENTER_FDA : [1,0],
             DEPLOYMENTS.Z_CURE_CENTER_EXP : [1,1],
             DEPLOYMENTS.FLU_VACCINE_MAN : [1,1],
-            DEPLOYMENTS.BROADCAST_DONT_PANIC : [1,0],
+            DEPLOYMENTS.BROADCAST_DONT_PANIC : [-1,0],
             DEPLOYMENTS.BROADCAST_CALL_TO_ARMS : [1,0],
             DEPLOYMENTS.SNIPER_TOWER_FREE : [1,0],
-            DEPLOYMENTS.PHEROMONES_MEAT : [1,1],
+            DEPLOYMENTS.PHEROMONES_MEAT : [-1,1],
             DEPLOYMENTS.BSL4LAB_SAFETY_OFF : [0,-2],
             DEPLOYMENTS.RALLY_POINT_FULL : [1,0],
             DEPLOYMENTS.FIREBOMB_PRIMED : [1,0],
@@ -317,7 +325,7 @@ class City:
         death_prob_firebomb_barrage = 0.1
         vaporize_prob_firebomb_barrage = 0.9
         for npc in nbh.NPCs:
-            #List of all conditions, state change type, state changes for each deployment
+            #Dictionary of all [conditions, probability of state change, state change type, state change to] for each deployment
             states_changes_for_deployments = {
                 DEPLOYMENTS.Z_CURE_CENTER_FDA : [[npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE_BITTEN, bite_cure_prob_z_cure_center_fda, "zombie", NPC_STATES_ZOMBIE.HUMAN],
                                                  [npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE, zombie_cure_prob_z_cure_center_fda, "zombie", NPC_STATES_ZOMBIE.ZOMBIE_BITTEN]],
@@ -511,26 +519,31 @@ class City:
                 self._push_specific_bag_adjust(dep, nbh_index)
                 self._pull_bag_adjust(dep, nbh_index)
 
-    def _specific_action_bag_add(self, npc, action, number_to_add):
+    def _specific_action_bag_add(self, npc, action, number_to_add): #A bag editor for adding a number of any of the following actions: NPC_ACTIONS.STAY, NPC_ACTIONS.N, NPC_ACTIONS.S, NPC_ACTIONS.E, NPC_ACTIONS.W
         for _ in range(number_to_add):
             npc.add_to_bag(action)
             
-    def _push_action_bag_add(self, npc, nbh, number_to_add):
+    def _push_action_bag_add(self, npc, nbh, number_to_add): #A bag editor for adding a number of actions to move an NPC away from their current location
         for npc_action in nbh.adj_locations.values():
             for _ in range(number_to_add):
                 npc.add_to_bag(npc_action)
                              
-    def _push_specific_bag_adjust(self, dep, nbh_index):
+    def _push_specific_bag_adjust(self, dep, nbh_index): #Method to adjust bags to incorporate pushing NPCs away from a certain location or moving them in a certain direction as a result of deployments
         nbh = self.neighborhoods[nbh_index]
         deps_that_belong_here = {DEPLOYMENTS.QUARANTINE_OPEN : 1, DEPLOYMENTS.QUARANTINE_FENCED : 1, DEPLOYMENTS.PHEROMONES_BRAINS : 1, DEPLOYMENTS.PHEROMONES_MEAT : 1, DEPLOYMENTS.SOCIAL_DISTANCING_SIGNS : 1, DEPLOYMENTS.SOCIAL_DISTANCING_CELEBRITY : 1}
         if deps_that_belong_here.get(dep, 0) == 0:
             return -1
         for npc in nbh.NPCs:
             bag_changes_for_deployments = { #format for each possible change is [condition, push npc away from neighborhood or specific action, number of actions to addof each]
-                DEPLOYMENTS.QUARANTINE_OPEN : [[npc.active, "push", 3], [npc.sickly, NPC_ACTIONS.STAY, 10]], 
-                DEPLOYMENTS.QUARANTINE_FENCED : [[npc.active, "push", 3], [npc.sickly, NPC_ACTIONS.STAY, 10]],
-                DEPLOYMENTS.PHEROMONES_BRAINS : [[npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE, NPC_ACTIONS.STAY, 10], [npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE_BITTEN, NPC_ACTIONS.STAY, 1]],
-                DEPLOYMENTS.PHEROMONES_MEAT : [[npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE, NPC_ACTIONS.STAY, 10], [npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE_BITTEN, NPC_ACTIONS.STAY, 9], [npc.active or npc.state_flu is NPC_STATES_FLU.INCUBATING, NPC_ACTIONS.STAY, 1]],
+                DEPLOYMENTS.QUARANTINE_OPEN : [[npc.active, "push", 3], 
+                                               [npc.sickly, NPC_ACTIONS.STAY, 10]], 
+                DEPLOYMENTS.QUARANTINE_FENCED : [[npc.active, "push", 3], 
+                                                 [npc.sickly, NPC_ACTIONS.STAY, 10]],
+                DEPLOYMENTS.PHEROMONES_BRAINS : [[npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE, NPC_ACTIONS.STAY, 10], 
+                                                 [npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE_BITTEN, NPC_ACTIONS.STAY, 1]],
+                DEPLOYMENTS.PHEROMONES_MEAT : [[npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE, NPC_ACTIONS.STAY, 10], 
+                                               [npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE_BITTEN, NPC_ACTIONS.STAY, 9], 
+                                               [npc.active or npc.state_flu is NPC_STATES_FLU.INCUBATING, NPC_ACTIONS.STAY, 1]],
                 DEPLOYMENTS.SOCIAL_DISTANCING_SIGNS : [[npc.sickly or npc.active, NPC_ACTIONS.STAY, 2]],
                 DEPLOYMENTS.SOCIAL_DISTANCING_CELEBRITY : [[npc.sickly or npc.active, NPC_ACTIONS.STAY, 9]]
             }
@@ -541,7 +554,7 @@ class City:
                     else:
                         self._specific_action_bag_add(npc, possible_changes[1], possible_changes[2])
                         
-    def _pull_bag_adjust(self, dep, nbh_index):
+    def _pull_bag_adjust(self, dep, nbh_index): #Method to adjust bags to incorporate pulling npcs towards a neighborhood as a result of deployments
         nbh = self.neighborhoods[nbh_index]
         deps_that_belong_here = {DEPLOYMENTS.QUARANTINE_OPEN : 1, DEPLOYMENTS.QUARANTINE_FENCED : 1, DEPLOYMENTS.PHEROMONES_BRAINS : 1, DEPLOYMENTS.PHEROMONES_MEAT : 1, DEPLOYMENTS.RALLY_POINT_OPT : 1, DEPLOYMENTS.RALLY_POINT_FULL : 1}
         if deps_that_belong_here.get(dep, 0) == 0:
@@ -554,8 +567,11 @@ class City:
                         bag_changes_for_deployments = { #format for each possible change is [condition, push npc away from neighborhood or specific action, number of actions to addof each]
                             DEPLOYMENTS.QUARANTINE_OPEN : [[npc.sickly, 10]],
                             DEPLOYMENTS.QUARANTINE_FENCED : [[npc.sickly, 10]],
-                            DEPLOYMENTS.PHEROMONES_BRAINS : [[npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE, 10], [npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE_BITTEN, 1]],
-                            DEPLOYMENTS.PHEROMONES_MEAT : [[npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE, 10], [npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE_BITTEN, 9], [npc.active or npc.state_flu is NPC_STATES_FLU.INCUBATING, 1]],
+                            DEPLOYMENTS.PHEROMONES_BRAINS : [[npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE, 10], 
+                                                             [npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE_BITTEN, 1]],
+                            DEPLOYMENTS.PHEROMONES_MEAT : [[npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE, 10], 
+                                                           [npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE_BITTEN, 9], 
+                                                           [npc.active or npc.state_flu is NPC_STATES_FLU.INCUBATING, 1]],
                             DEPLOYMENTS.RALLY_POINT_OPT : [[npc.active, 3]],
                             DEPLOYMENTS.RALLY_POINT_FULL : [[(npc.state_zombie is not NPC_STATES_ZOMBIE.ZOMBIE) or (npc.state_dead is not NPC_STATES_DEAD.DEAD), 10]]
                         }
@@ -672,21 +688,16 @@ class City:
                      'original_dead': self.orig_dead}
         return city_data
 
-    def _mask_visible_data(self, value):
-            # Don't report out (to user and in state) the actual values, instead, bin them into none, few, and many
-            if value < self.fear:  # [0, fear] inclusive, also, handles negative values (which shouldn't happen)
-                return LEVELS.NONE
-            elif value < (self.num_npcs * 0.5) + self.fear:  # [fear + 1, half population + fear]
-                return LEVELS.FEW
-            else:  # else [half population + fear + 1, total population], also handles values that are too large
-                return LEVELS.MANY
+    def _mask_visible_data(self, nbh_fear, value):
+            offset_amount = min(.85 * value, int(nbh_fear / 75 * value)) #The offset value
+            return random.randint(value - offset_amount, value + offset_amount)
 
-    def _show_data(self, value):
+    def _show_data(self, nbh_fear, value):
         #Decides which data to show
         if self.developer_mode:
             return value
         else:
-            return self._mask_visible_data(value).name
+            return self._mask_visible_data(nbh_fear, value)
 
 
     def rl_encode(self):
@@ -709,10 +720,10 @@ class City:
             nbh_data = nbh.get_data()
             state[i + 1, 0] = nbh_data.get('original_alive', 0)  # i + 1 since i starts at 0 and 0 is already filled
             state[i + 1, 1] = nbh_data.get('original_dead', 0)
-            state[i + 1, 2] = self._mask_visible_data(nbh_data.get('num_active', 0)).value
-            state[i + 1, 3] = self._mask_visible_data(nbh_data.get('num_sickly', 0)).value
-            state[i + 1, 4] = self._mask_visible_data(nbh_data.get('num_zombie', 0)).value
-            state[i + 1, 5] = self._mask_visible_data(nbh_data.get('num_dead', 0)).value
+            state[i + 1, 2] = self._mask_visible_data(nbh.local_fear, nbh_data.get('num_active', 0))
+            state[i + 1, 3] = self._mask_visible_data(nbh.local_fear, nbh_data.get('num_sickly', 0))
+            state[i + 1, 4] = self._mask_visible_data(nbh.local_fear, nbh_data.get('num_zombie', 0))
+            state[i + 1, 5] = self._mask_visible_data(nbh.local_fear, nbh_data.get('num_dead', 0))
             for j in range(len(nbh.deployments)):
                 state[i + 1, j + 6] = nbh.deployments[j].value
 
@@ -787,11 +798,13 @@ class City:
             text += add_under_location_symbol_text(information_bottom_statistics)
             text += PBack.blue + '============================================================================================' + PBack.reset + '\n'
             return text
-        information = [["Active"] + [self._show_data(nbh.num_active) for nbh in self.neighborhoods],
-                       ["Sickly"] + [self._show_data(nbh.num_sickly) for nbh in self.neighborhoods],
-                       ["Zombies"] + [self._show_data(nbh.num_zombie) for nbh in self.neighborhoods],
-                       ["Dead"] + [self._show_data(nbh.num_dead) for nbh in self.neighborhoods],
-                       ["Dead Ashen"] + [self._show_data(nbh.num_ashen) for nbh in self.neighborhoods],
+
+        #Information is what's printed for each neighborhood
+        #It should be in the form of [statistic_name, statistc data for neighborhoodNW, N, NE, W, ...
+        information = [["Active"] + [self._show_data(nbh.local_fear, nbh.num_active) for nbh in self.neighborhoods],
+                       ["Sickly"] + [self._show_data(nbh.local_fear, nbh.num_sickly) for nbh in self.neighborhoods],
+                       ["Zombies"] + [self._show_data(nbh.local_fear, nbh.num_zombie) for nbh in self.neighborhoods],
+                       ["Dead"] + [self._show_data(nbh.local_fear, nbh.num_dead) for nbh in self.neighborhoods],
                        ["Living at Start"] + [nbh.orig_alive for nbh in self.neighborhoods],
                        ["Dead at Start"] + [nbh.orig_dead for nbh in self.neighborhoods],
                        ["Local Fear"] + [nbh.local_fear for nbh in self.neighborhoods]]
