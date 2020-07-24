@@ -692,7 +692,7 @@ class City:
             offset_amount = min(.85 * value, int(nbh_fear / 75 * value)) #The offset value
             return random.randint(value - offset_amount, value + offset_amount)
 
-    def _show_data(self, nbh_fear, value):
+    def show_data(self, nbh_fear, value):
         #Decides which data to show
         if self.developer_mode:
             return value
@@ -801,10 +801,11 @@ class City:
             
         #Information is what's printed for each neighborhood
         #It should be in the form of [statistic_name, statistc data for neighborhoodNW, N, NE, W, ...
-        information = [["Active"] + [self._show_data(nbh.local_fear, nbh.num_active) for nbh in self.neighborhoods],
-                       ["Sickly"] + [self._show_data(nbh.local_fear, nbh.num_sickly) for nbh in self.neighborhoods],
-                       ["Zombies"] + [self._show_data(nbh.local_fear, nbh.num_zombie) for nbh in self.neighborhoods],
-                       ["Dead"] + [self._show_data(nbh.local_fear, nbh.num_dead) for nbh in self.neighborhoods],
+
+        information = [["Active"] + [self.show_data(nbh.num_active) for nbh in self.neighborhoods],
+                       ["Sickly"] + [self.show_data(nbh.num_sickly) for nbh in self.neighborhoods],
+                       ["Zombies"] + [self.show_data(nbh.num_zombie) for nbh in self.neighborhoods],
+                       ["Dead"] + [self.show_data(nbh.num_dead) for nbh in self.neighborhoods],
                        ["Living at Start"] + [nbh.orig_alive for nbh in self.neighborhoods],
                        ["Dead at Start"] + [nbh.orig_dead for nbh in self.neighborhoods],
                        ["Local Fear"] + [nbh.local_fear for nbh in self.neighborhoods]]
@@ -814,7 +815,7 @@ class City:
         # Close out console output
         fancy_string += ebuffer
         print(fancy_string)
-        return fancy_string
+        return self.neighborhoods, self.score, self.total_score, self.fear, self.orig_alive, self.orig_dead
 
     def _get_turn_desc_data(self):
         self.update_summary_stats()
