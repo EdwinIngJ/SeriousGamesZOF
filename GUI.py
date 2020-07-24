@@ -38,7 +38,7 @@ class GUI(Frame):
         Score = Label(frame, text = 'Turn Score:{0}(Total Score: {1})'.format(self.score, self.total_score), font = ('Courier', 8))
         Score.place(relx = 0.853, rely = 0.001, relwidth = 0.1, relheight = 0.05) #Label for total score
 
-        Fear = Label(frame, text = ' Fear: {}'.format(self.fear), font = ('Courier', 12))
+        Fear = Label(frame, text = ' Fear: {}'.format(self.fear), font = ('Courier', 10))
         Fear.place(relx =0.75, rely = 0.055, relwidth = 0.204, relheight = 0.05) #Label for fear counter
 
         DeployFrame = Label(frame, bg = 'gray', bd = 5)
@@ -164,5 +164,4 @@ class GUI(Frame):
 
     def _cleanup(self):
         self.env.close()
-            
             
