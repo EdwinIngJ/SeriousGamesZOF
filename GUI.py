@@ -38,7 +38,7 @@ class GUI(Frame):
         Score = Label(frame, text = 'Turn Score:{0}(Total Score: {1})'.format(self.score, self.total_score), font = ('Courier', 8))
         Score.place(relx = 0.853, rely = 0.001, relwidth = 0.1, relheight = 0.05) #Label for total score
 
-        Fear = Label(frame, text = ' Fear: {}'.format(self.fear), font = ('Courier', 12))
+        Fear = Label(frame, text = ' Fear: {}'.format(self.fear), font = ('Courier', 10))
         Fear.place(relx =0.75, rely = 0.055, relwidth = 0.204, relheight = 0.05) #Label for fear counter
 
         DeployFrame = Label(frame, bg = 'gray', bd = 5)
@@ -164,29 +164,6 @@ class GUI(Frame):
 
     def _cleanup(self):
         self.env.close()
-     
 
-'''
-            def _read_action(self, location_or_deployment, input_number):
-        print('Input Action - ' + location_or_deployment.title() + ' ' + input_number + ':')
-        user_input = input()
-        number_of_locations_or_deployments = len(LOCATIONS) if location_or_deployment == "location" else len(DEPLOYMENTS)
-        while not(user_input.isdigit()) or int(user_input) not in range(0, number_of_locations_or_deployments):
-            print(location_or_deployment.title() + " must be a value between 0 and " + str(number_of_locations_or_deployments - 1) + ". Please enter a valid " + location_or_deployment + ".")
-            user_input = input()
-        return int(user_input)
-        
-        for turn in range(self.max_turns):
-            self.env.print_player_action_selections()
-
-            location_1 = self._read_action("location", "1")
-            deployment_1 = self._read_action("deployment", "1")
-            location_2 = self._read_action("location", "2")
-            deployment_2 = self._read_action("deployment", "2")
-                
-            
-            print(info)
-            self.env.render(mode='human')
-'''
             # Write action and stuff out to disk.
             
