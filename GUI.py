@@ -33,17 +33,17 @@ class GUI(Frame):
         TitleCard.place(relx=0.5, rely=0.001, relwidth=0.49, relheight=0.075, anchor='n')  # header with game title
 
         ###Notification Bar###
-        NotifBar = Label(frame, font=('Courier', 9))
-        NotifBar.place(relx=0.5, rely=0.08, relwidth=0.49, relheight=0.025, anchor='n')
+        self.NotifBar = Label(frame, font=('Courier', 9))
+        self.NotifBar.place(relx=0.5, rely=0.08, relwidth=0.49, relheight=0.025, anchor='n')
 
         Turn = Label(frame, text = ' Turn: {0} of {1}'.format(self.turn, self.max_turns) , font = ('Courier', 8))
         Turn.place(relx = 0.75, rely = 0.001, relwidth = 0.1, relheight = 0.05) #Label for turn counter
 
-        Score = Label(frame, text = 'Turn Score:{0}(Total Score: {1})'.format(self.score, self.total_score), font = ('Courier', 8))
-        Score.place(relx = 0.853, rely = 0.001, relwidth = 0.1, relheight = 0.05) #Label for total score
+        Score = Label(frame, text = 'Turn Score:{0}(Total Score: {1})'.format(self.score, self.total_score), font = ('Courier', 7), justify = 'left')
+        Score.place(relx = 0.853, rely = 0.001, relwidth = 0.135, relheight = 0.05) #Label for total score
 
         Fear = Label(frame, text = ' Fear: {}'.format(self.fear), font = ('Courier', 10))
-        Fear.place(relx =0.75, rely = 0.055, relwidth = 0.204, relheight = 0.05) #Label for fear counter
+        Fear.place(relx =0.75, rely = 0.055, relwidth = 0.239, relheight = 0.05) #Label for fear counter
 
         DeployFrame = Label(frame, bg = 'gray', bd = 5)
         DeployFrame.place(relwidth= 0.25, relheight= 0.99) #frame to hold the 25 Deployment buttons
@@ -53,8 +53,6 @@ class GUI(Frame):
             button = Button(DeployFrame, text = DEPLOYMENTS(i).name, font = ('Courier', 7), command=lambda x=i:self.add_deployment(x))
             button.place(rely = i * 0.04, relwidth = 1)
         self.create_neighborhoods()
-
-    ##def updater(self):
 
     def create_neighborhoods(self):
         ### The 9 Neighborhoods ###
@@ -119,6 +117,8 @@ class GUI(Frame):
             self._do_turn()
         print(self.deployments_action)
 
+        self.NotifBar['text'] = "You deployed " + DEPLOYMENTS(deployment).name
+
     def add_location(self, location):
         num_d = len(self.deployments_action)
         num_l = len(self.locations_action)
@@ -130,6 +130,8 @@ class GUI(Frame):
             self.locations_action.append(location)
             self._do_turn()
         print(self.locations_action)
+
+        self.NotifBar['text'] = " Location: " + LOCATIONS(location).name
              
     def _do_turn(self):
         actions = self.env.encode_raw_action(location_1=LOCATIONS(self.locations_action[0]),
