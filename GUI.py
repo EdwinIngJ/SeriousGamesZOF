@@ -29,8 +29,12 @@ class GUI(Frame):
         frame = Frame(self.root, bg = "#263D42", bd = 5) #hex teal blue
         frame.place(relx = 0.5, rely= 0.01, relwidth= 1, relheight= 0.97, anchor = 'n')
 
-        TitleCard = Label(frame, text = "Zombies or Flu", font = ('Courier', 18))
-        TitleCard.place(relx = 0.5, rely = 0.001, relwidth = 0.49, relheight  = 0.1, anchor = 'n') #header with game title
+        TitleCard = Label(frame, text="Zombies or Flu", font=('Courier', 18))
+        TitleCard.place(relx=0.5, rely=0.001, relwidth=0.49, relheight=0.075, anchor='n')  # header with game title
+
+        ###Notification Bar###
+        NotifBar = Label(frame, font=('Courier', 9))
+        NotifBar.place(relx=0.5, rely=0.08, relwidth=0.49, relheight=0.025, anchor='n')
 
         Turn = Label(frame, text = ' Turn: {0} of {1}'.format(self.turn, self.max_turns) , font = ('Courier', 8))
         Turn.place(relx = 0.75, rely = 0.001, relwidth = 0.1, relheight = 0.05) #Label for turn counter
@@ -49,6 +53,8 @@ class GUI(Frame):
             button = Button(DeployFrame, text = DEPLOYMENTS(i).name, font = ('Courier', 7), command=lambda x=i:self.add_deployment(x))
             button.place(rely = i * 0.04, relwidth = 1)
         self.create_neighborhoods()
+
+    ##def updater(self):
 
     def create_neighborhoods(self):
         ### The 9 Neighborhoods ###
