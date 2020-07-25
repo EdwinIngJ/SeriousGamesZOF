@@ -248,7 +248,6 @@ class GUI():
             turn_desc_data[nbh.location.name] = [stat[i+1] for stat in self.information]
         return turn_desc_data
 
-    
     def _create_turn_desc(self, prev_stats, curr_stats):
         turn_desc_container = {}
         #Calculates the changes and adds them to the dictionary along with the statistics for that turn
