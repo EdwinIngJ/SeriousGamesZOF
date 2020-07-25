@@ -154,8 +154,24 @@ class GUI():
             top = Toplevel()
             top.title('Log')
             data_log = self.get_turn_desc()
-            Turn_num = Label(top, text = "End of Turn: " + str(data_log[self.turn_desc_log_index]["Global"][0]), bd = 5)
-            Turn_num.grid(row=0)
+            turn_num = Label(top, text = "End of Turn: {}".format(data_log[self.turn_desc_log_index]["Global"][0]), bd = 5)
+            turn_num.grid(row=0)
+
+            #Global stats
+            score_turn_desc = Label(top, text = 'Total Score: {}    {}'.format(data_log[self.turn_desc_log_index]["Global"][1], 
+            data_log[self.turn_desc_log_index]["delta_Global"][1] if data_log[self.turn_desc_log_index]["delta_Global"][1] < 0 else "+" 
+            + str(data_log[self.turn_desc_log_index]["delta_Global"][1])), bd = 5)
+            score_turn_desc.grid(row = 1, column = 0) 
+
+            fear_turn_desc = Label(top, text = 'Fear: {}    {}'.format(data_log[self.turn_desc_log_index]["Global"][2], 
+            data_log[self.turn_desc_log_index]["delta_Global"][2] if data_log[self.turn_desc_log_index]["delta_Global"][2] < 0 else "+" 
+            + str(data_log[self.turn_desc_log_index]["delta_Global"][2])), bd = 5)
+            fear_turn_desc.grid(row = 1, column = 1)
+
+            resource_turn_desc = Label(top, text = 'Resources: {}    {}'.format(data_log[self.turn_desc_log_index]["Global"][3], 
+            data_log[self.turn_desc_log_index]["delta_Global"][3] if data_log[self.turn_desc_log_index]["delta_Global"][3] < 0 else "+" 
+            + str(data_log[self.turn_desc_log_index]["delta_Global"][3])), bd = 5)
+            resource_turn_desc.grid(row = 1, column = 2)
 
             def format_for_grid(nbh_name):
                 var_names = ["Active","Sickly","Zombies","Dead","Living at Start","Dead at Start","Local Fear"]
@@ -165,42 +181,46 @@ class GUI():
                 return text
 
             NWest_turn_desc = Label(top, text = format_for_grid(LOCATIONS.NW.name), bd = 5)
-            NWest_turn_desc.grid(row = 1, column = 0)
+            NWest_turn_desc.grid(row = 2, column = 0)
 
             North_turn_desc = Label(top, text = format_for_grid(LOCATIONS.N.name), bd = 5)
-            North_turn_desc.grid(row = 1, column = 1)
+            North_turn_desc.grid(row = 2, column = 1)
 
             NEast_turn_desc = Label(top, text = format_for_grid(LOCATIONS.NE.name), bd = 5)
-            NEast_turn_desc.grid(row = 1, column = 2)
+            NEast_turn_desc.grid(row = 2, column = 2)
 
             West_turn_desc = Label(top, text = format_for_grid(LOCATIONS.W.name), bd = 5)
-            West_turn_desc.grid(row = 2, column = 0)
+            West_turn_desc.grid(row = 3, column = 0)
 
             Center_turn_desc = Label(top, text = format_for_grid(LOCATIONS.CENTER.name), bd = 5)
-            Center_turn_desc.grid(row = 2, column = 1)
+            Center_turn_desc.grid(row = 3, column = 1)
 
             East_turn_desc = Label(top, text = format_for_grid(LOCATIONS.E.name), bd = 5)
-            East_turn_desc.grid(row = 2, column = 2)
+            East_turn_desc.grid(row = 3, column = 2)
 
             SWest_turn_desc = Label(top, text = format_for_grid(LOCATIONS.SW.name), bd = 5)
-            SWest_turn_desc.grid(row = 3, column = 0)
+            SWest_turn_desc.grid(row = 4, column = 0)
 
             South_turn_desc = Label(top, text = format_for_grid(LOCATIONS.S.name), bd = 5)
-            South_turn_desc.grid(row = 3, column = 1)
+            South_turn_desc.grid(row = 4, column = 1)
 
             SEast_turn_desc = Label(top, text = format_for_grid(LOCATIONS.SE.name), bd = 5)
-            SEast_turn_desc.grid(row = 3, column = 2)
+            SEast_turn_desc.grid(row = 4, column = 2)
 
             action_turn_desc_text = "You deployed {} in {} \n".format(DEPLOYMENTS(data_log[self.turn_desc_log_index]["actions"][0][0]).name,LOCATIONS(data_log[self.turn_desc_log_index]["actions"][1][0]).name)
             action_turn_desc_text += "You then deployed {} in {}".format(DEPLOYMENTS(data_log[self.turn_desc_log_index]["actions"][0][1]).name,LOCATIONS(data_log[self.turn_desc_log_index]["actions"][1][1]).name)
             action_turn_desc = Label(top, text = action_turn_desc_text, bd = 5)
-            action_turn_desc.grid(row = 4, column = 0, columnspan = 2)
+            action_turn_desc.grid(row = 5, column = 0, columnspan = 2)
+
+            events_turn_desc_text = "Events:"
+            events_turn_desc = Label(top, text = events_turn_desc_text, bd = 5)
+            events_turn_desc.grid(row = 2, column = 4, sticky = N)
 
             prev_button = Button(top, text = "Previous", command=lambda: self.prev_log(), bd = 5)
-            prev_button.grid(row = 5, column = 0)
+            prev_button.grid(row = 6, column = 0)
 
             next_button = Button(top, text = "Next", command=lambda:self.next_log(), bd = 5)
-            next_button.grid(row = 5, column = 1)
+            next_button.grid(row = 6, column = 1)
  
         else:
             self.NotifBar['text'] = "No Turn Description Available"
