@@ -4,9 +4,8 @@ import gym
 import gym_zgame
 from gym_zgame.envs.enums.PLAYER_ACTIONS import LOCATIONS, DEPLOYMENTS
 
-class GUI(Frame):
+class GUI():
     def __init__(self, root, zgame):
-        super().__init__(root)
         self.GAME_ID = zgame.GAME_ID
         print('Starting new game with human play!')
         #Variables for tkinter GUI
@@ -31,27 +30,32 @@ class GUI(Frame):
         self.create_screen()
 
     def create_screen(self):
-        frame = Frame(self.root, bg = "#263D42", bd = 5) #hex teal blue
-        frame.place(relx = 0.5, rely= 0.01, relwidth= 1, relheight= 0.97, anchor = 'n')
+        #Creates the background for the GUI
+        back_frame = Frame(self.root, bg = "#263D42", bd = 5) #hex teal blue
+        back_frame.place(relx = 0.5, rely= 0.01, relwidth= 1, relheight= 0.97, anchor = 'n')
 
-        TitleCard = Label(frame, text="Zombies or Flu", font=('Courier', 18))
+        TitleCard = Label(back_frame, text="Zombies or Flu", font=('Courier', 18))
         TitleCard.place(relx=0.5, rely=0.001, relwidth=0.49, relheight=0.075, anchor='n')  # header with game title
 
         ###Notification Bar###
-        self.NotifBar = Button(frame, font=('Courier', 9), command = lambda: self.open_log())
+        self.NotifBar = Button(back_frame, font=('Courier', 9), command = lambda: self.open_log())
         self.NotifBar.place(relx=0.5, rely=0.08, relwidth=0.49, relheight=0.025, anchor='n')
 
-        Turn = Label(frame, text = ' Turn: {0} of {1}'.format(self.turn, self.max_turns) , font = ('Courier', 8))
-        Turn.place(relx = 0.75, rely = 0.001, relwidth = 0.1, relheight = 0.05) #Label for turn counter
+        #Label for turn counter
+        Turn = Label(back_frame, text = ' Turn: {0} of {1}'.format(self.turn, self.max_turns) , font = ('Courier', 8))
+        Turn.place(relx = 0.75, rely = 0.001, relwidth = 0.1, relheight = 0.05) 
 
-        Score = Label(frame, text = 'Turn Score:{0}(Total Score: {1})'.format(self.score, self.total_score), font = ('Courier', 7), justify = 'left')
-        Score.place(relx = 0.853, rely = 0.001, relwidth = 0.135, relheight = 0.05) #Label for total score
+        #Label for total score
+        Score = Label(back_frame, text = 'Turn Score:{0}(Total Score: {1})'.format(self.score, self.total_score), font = ('Courier', 7), justify = 'left')
+        Score.place(relx = 0.853, rely = 0.001, relwidth = 0.135, relheight = 0.05) 
 
-        Fear = Label(frame, text = ' Fear: {}'.format(self.fear), font = ('Courier', 10))
-        Fear.place(relx =0.75, rely = 0.055, relwidth = 0.239, relheight = 0.05) #Label for fear counter
+        #Label for fear counter
+        Fear = Label(back_frame, text = ' Fear: {}'.format(self.fear), font = ('Courier', 10))
+        Fear.place(relx =0.75, rely = 0.055, relwidth = 0.239, relheight = 0.05) 
 
-        DeployFrame = Label(frame, bg = 'gray', bd = 5)
-        DeployFrame.place(relwidth= 0.25, relheight= 0.99) #frame to hold the 25 Deployment buttons
+        #Frame to hold the 25 Deployment buttons
+        DeployFrame = Label(back_frame, bg = 'gray', bd = 5)
+        DeployFrame.place(relwidth= 0.25, relheight= 0.99) 
 
         ###The 25 Deployment Buttons ###
         for i in range(25):
@@ -73,72 +77,79 @@ class GUI(Frame):
             ["Dead at Start"] + [nbh.orig_dead for nbh in self.neighborhoods],
             ["Local Fear"] + [nbh.local_fear for nbh in self.neighborhoods]]
 
-        formated_information = []
+        #Formats the information to display
+        formatted_information = []
         for i in range(len(self.neighborhoods)):
             text = ''
             for elem in self.information:
                 text += '{}: {}'.format(elem[0], elem[i+1]) + '\n'
-            formated_information.append(text)
+            formatted_information.append(text)
 
         CityFrame = Frame(self.root, bg = 'gray', bd = 5)
         CityFrame.place(relx = 0.255, rely = 0.13, relwidth = 0.725, relheight = 0.83) #Frame to hold all 9 City labels
 
-        NWest = Button(CityFrame, text = formated_information[0], command=lambda x=LOCATIONS.NW.value:self.add_location(x), bd = 5)
+        NWest = Button(CityFrame, text = formatted_information[0], command=lambda x=LOCATIONS.NW.value:self.add_location(x), bd = 5)
         NWest.place(relwidth = 0.33, relheight = 0.33)
 
-        North = Button(CityFrame, text = formated_information[1], command=lambda x=LOCATIONS.N.value:self.add_location(x), bd = 5)
+        North = Button(CityFrame, text = formatted_information[1], command=lambda x=LOCATIONS.N.value:self.add_location(x), bd = 5)
         North.place(relx = 0.335, relwidth = 0.33, relheight = 0.33)
 
-        NEast = Button(CityFrame, text = formated_information[2], command=lambda x=LOCATIONS.NE.value:self.add_location(x), bd = 5)
+        NEast = Button(CityFrame, text = formatted_information[2], command=lambda x=LOCATIONS.NE.value:self.add_location(x), bd = 5)
         NEast.place(relx = 0.669, relwidth = 0.33, relheight = 0.33)
 
-        West = Button(CityFrame, text = formated_information[3], command=lambda x=LOCATIONS.W.value:self.add_location(x), bd = 5)
+        West = Button(CityFrame, text = formatted_information[3], command=lambda x=LOCATIONS.W.value:self.add_location(x), bd = 5)
         West.place(rely = 0.335, relwidth =  0.33, relheight = 0.33)
 
-        Center = Button(CityFrame, text = formated_information[4], command=lambda x=LOCATIONS.CENTER.value:self.add_location(x), bd = 5)
+        Center = Button(CityFrame, text = formatted_information[4], command=lambda x=LOCATIONS.CENTER.value:self.add_location(x), bd = 5)
         Center.place(relx = 0.335, rely = 0.335, relwidth = 0.33, relheight = 0.33)
 
-        East = Button(CityFrame, text = formated_information[5], command=lambda x=LOCATIONS.E.value:self.add_location(x), bd = 5)
+        East = Button(CityFrame, text = formatted_information[5], command=lambda x=LOCATIONS.E.value:self.add_location(x), bd = 5)
         East.place(relx = 0.669, rely = 0.335, relwidth = 0.33, relheight = 0.33)
 
-        SWest = Button(CityFrame, text = formated_information[6], command=lambda x=LOCATIONS.SW.value:self.add_location(x), bd = 5)
+        SWest = Button(CityFrame, text = formatted_information[6], command=lambda x=LOCATIONS.SW.value:self.add_location(x), bd = 5)
         SWest.place(rely = 0.67, relwidth = 0.33, relheight = 0.33)
 
-        South = Button(CityFrame, text = formated_information[7], command=lambda x=LOCATIONS.S.value:self.add_location(x), bd = 5)
+        South = Button(CityFrame, text = formatted_information[7], command=lambda x=LOCATIONS.S.value:self.add_location(x), bd = 5)
         South.place(relx = 0.335, rely = 0.67, relwidth = 0.33, relheight = 0.33)
 
-        SEast = Button(CityFrame, text = formated_information[8], command=lambda x=LOCATIONS.SE.value:self.add_location(x), bd = 5)
+        SEast = Button(CityFrame, text = formatted_information[8], command=lambda x=LOCATIONS.SE.value:self.add_location(x), bd = 5)
         SEast.place(relx = 0.669, rely = 0.67, relwidth = 0.33, relheight = 0.33)
 
     def add_deployment(self, deployment):
-        num_d = len(self.deployments_action)
-        num_l = len(self.locations_action)
-        if  num_d == 0:
-            self.deployments_action.append(deployment)
-        elif num_d == 1 and num_l < 2 :
-            self.deployments_action.append(deployment)
-        elif num_d  == 1 and num_l == 2 :
-            self.deployments_action.append(deployment)
-            self._do_turn()
-        print(self.deployments_action)
+        if self.turn < self.max_turns:
+            #Adds deployments to deployments list cant exceed 2 actions per turn
+            num_d = len(self.deployments_action)
+            num_l = len(self.locations_action)
+            if  num_d == 0:
+                self.deployments_action.append(deployment)
+            elif num_d == 1 and num_l < 2 :
+                self.deployments_action.append(deployment)
+            elif num_d  == 1 and num_l == 2 :
+                self.deployments_action.append(deployment)
+                self._do_turn()
+            print(self.deployments_action)
 
-        self.NotifBar['text'] = "Deployment:  " + DEPLOYMENTS(deployment).name
+            self.NotifBar['text'] = "Deployment:  " + DEPLOYMENTS(deployment).name
 
     def add_location(self, location):
-        num_d = len(self.deployments_action)
-        num_l = len(self.locations_action)
-        if  num_l == 0:
-            self.locations_action.append(location)
-        elif num_l == 1 and num_d < 2 :
-            self.locations_action.append(location)
-        elif num_l  == 1 and num_d == 2 :
-            self.locations_action.append(location)
-            self._do_turn()
-        print(self.locations_action)
+        if self.turn < self.max_turns:
+            #Adds locations to locations list cant exceed 2 actions per turn
+            num_d = len(self.deployments_action)
+            num_l = len(self.locations_action)
+            if  num_l == 0:
+                self.locations_action.append(location)
+            elif num_l == 1 and num_d < 2 :
+                self.locations_action.append(location)
+            elif num_l  == 1 and num_d == 2 :
+                self.locations_action.append(location)
+                self._do_turn()
+            print(self.locations_action)
 
-        self.NotifBar['text'] = " Location: " + LOCATIONS(location).name
+            self.NotifBar['text'] = " Location: " + LOCATIONS(location).name
 
-    def open_log(self): ###the notif bar opens the data log
+    def open_log(self): 
+        #Creates the data logs
+        ###The notif bar opens the data log
         if self.turn > 0:
             top = Toplevel()
             top.title('Log')
@@ -195,6 +206,7 @@ class GUI(Frame):
             self.NotifBar['text'] = "No Turn Description Available"
     
     def prev_log(self):
+        #Button to iterate through past data logs
         if len(self.turn_description_info)*-1 < self.turn_desc_log_index:
             self.turn_desc_log_index -= 1
             self.open_log()
@@ -206,6 +218,7 @@ class GUI(Frame):
             self.open_log()
 
     def _get_turn_desc_data(self):
+        ##Gets data for the data log
         #Capture Global Data
         turn_desc_data = {}
         turn_desc_data["Global"] = [self.turn, self.total_score,self.fear,self.resources]
@@ -260,13 +273,18 @@ class GUI(Frame):
         self.turn_desc_log_index = -1
         self.deployments_action = []
         self.locations_action = []
-    
+
     def update_screen(self):
         self.neighborhoods, self.score, self.total_score, self.fear, self.resources, self.orig_alive, self.orig_dead = self.env.render(mode='human')
         self.create_screen()
 
+    def summary_screen(self):
+        #self.root.winfo_children()[0].quit()
+        pass
+
     def done(self):
         print("Episode finished after {} turns".format(self.turn))
+        self.summary_screen()
         self._cleanup()
 
     def _cleanup(self):
