@@ -185,7 +185,31 @@ class GUI(Frame):
             action_turn_desc.grid(row = 4, column = 0, columnspan = 2)
         else:
             pass
-        
+    
+    def _get_turn_desc_data(self):
+        #Capture Global Data
+        turn_desc_data = {}
+        turn_desc_data["Global"] = [self.turn, self.total_score,self.fear,self.resources]
+        #Capture Neighborhood Data
+        for i in range(len(self.neighborhoods)):
+            nbh = self.neighborhoods[i]
+            turn_desc_data[nbh.location.name] = [stat[i+1] for stat in self.information]
+        return turn_desc_data
+
+    
+    def _create_turn_desc(self, prev_stats, curr_stats):
+        turn_desc_container = {}
+        #Calculates the changes and adds them to the dictionary along with the statistics for that turn
+        #To add: events
+        for k, v in prev_stats.items():
+            turn_desc_container["delta_"+k] = [curr_stats[k][i]-v[i] for i in range(len(v))]
+        turn_desc_container.update(prev_stats)
+        turn_desc_container.update({"actions" : [self.deployments_action]+[self.locations_action]})
+        self.turn_description_info.append(turn_desc_container)
+
+    def get_turn_desc(self):
+        return self.turn_description_info
+
     def _do_turn(self):
         self.temp_data = self._get_turn_desc_data()
         actions = self.env.encode_raw_action(location_1=LOCATIONS(self.locations_action[0]),
@@ -227,27 +251,3 @@ class GUI(Frame):
 
     def _cleanup(self):
         self.env.close()
-            
-    def _get_turn_desc_data(self):
-        #Capture Global Data
-        turn_desc_data = {}
-        turn_desc_data["Global"] = [self.turn, self.total_score,self.fear,self.resources]
-        #Capture Neighborhood Data
-        for i in range(len(self.neighborhoods)):
-            nbh = self.neighborhoods[i]
-            turn_desc_data[nbh.location.name] = [stat[i+1] for stat in self.information]
-        return turn_desc_data
-
-    
-    def _create_turn_desc(self, prev_stats, curr_stats):
-        turn_desc_container = {}
-        #Calculates the changes and adds them to the dictionary along with the statistics for that turn
-        #To add: events
-        for k, v in prev_stats.items():
-            turn_desc_container["delta_"+k] = [curr_stats[k][i]-v[i] for i in range(len(v))]
-        turn_desc_container.update(prev_stats)
-        turn_desc_container.update({"actions" : [self.deployments_action]+[self.locations_action]})
-        self.turn_description_info.append(turn_desc_container)
-
-    def get_turn_desc(self):
-        return self.turn_description_info
