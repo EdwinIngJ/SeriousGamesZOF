@@ -825,7 +825,7 @@ class City:
         #Capture Neighborhood Data
         for i in range(len(self.neighborhoods)):
             nbh = self.neighborhoods[i]
-            turn_desc_data[nbh.location.name] = [nbh.num_active, nbh.num_sickly, nbh.num_zombie, nbh.num_dead, nbh.num_ashen, nbh.orig_alive, nbh.orig_dead, nbh.local_fear]
+            turn_desc_data[nbh.location.name] = [nbh.num_active, nbh.num_sickly, nbh.num_zombie, nbh.num_dead, nbh.orig_alive, nbh.orig_dead, nbh.local_fear]
         return turn_desc_data
 
     def _create_turn_desc(self, prev_stats, curr_stats, actions):

@@ -60,11 +60,11 @@ class GUI(Frame):
         #Include city stats
         #Information is what's printed for each neighborhood
         #It should be in the form of [statistic_name, statistc data for neighborhoodNW, N, NE, W, ...
-        information = [["Active"] + [self.env.city.show_data(nbh.local_fear, nbh.num_active) for nbh in self.neighborhoods],
-            ["Sickly"] + [self.env.city.show_data(nbh.local_fear, nbh.num_sickly) for nbh in self.neighborhoods],
-            ["Zombies"] + [self.env.city.show_data(nbh.local_fear, nbh.num_zombie) for nbh in self.neighborhoods],
-            ["Dead"] + [self.env.city.show_data(nbh.local_fear, nbh.num_dead) for nbh in self.neighborhoods],
-            ["Dead Ashen"] + [self.env.city.show_data(nbh.local_fear, nbh.num_ashen) for nbh in self.neighborhoods],
+        information = [["Active"] + [self.env.city.show_data(nbh, nbh.local_fear, nbh.num_active) for nbh in self.neighborhoods],
+            ["Sickly"] + [self.env.city.show_data(nbh, nbh.local_fear, nbh.num_sickly) for nbh in self.neighborhoods],
+            ["Zombies"] + [self.env.city.show_data(nbh, nbh.local_fear, nbh.num_zombie) for nbh in self.neighborhoods],
+            ["Dead"] + [self.env.city.show_data(nbh, nbh.local_fear, nbh.num_dead) for nbh in self.neighborhoods],
+            ["Dead Ashen"] + [self.env.city.show_data(nbh, nbh.local_fear, nbh.num_ashen) for nbh in self.neighborhoods],
             ["Living at Start"] + [nbh.orig_alive for nbh in self.neighborhoods],
             ["Dead at Start"] + [nbh.orig_dead for nbh in self.neighborhoods],
             ["Local Fear"] + [nbh.local_fear for nbh in self.neighborhoods]]
@@ -171,7 +171,7 @@ class GUI(Frame):
             SWest_turn_desc.grid(row = 3, column = 0)
 
             South_turn_desc = Label(top, text = format_for_grid(LOCATIONS.S.name), bd = 5)
-            South_turn_descgrid(row = 3, column = 1)
+            South_turn_desc.grid(row = 3, column = 1)
 
             SEast_turn_desc = Label(top, text = format_for_grid(LOCATIONS.SE.name), bd = 5)
             SEast_turn_desc.grid(row = 3, column = 2)
