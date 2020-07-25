@@ -133,10 +133,11 @@ class Neighborhood:
         for npc in self.NPCs:
             npc.clean_bag(self.location)
             
-    def add_to_all_npc_bags(self, action, amount_to_add):
+    def add_to_all_human_bags(self, action, amount_to_add): #human is misleading as its just non-zombie
         for npc in self.NPCs:
-            for _ in range(amount_to_add): 
-                npc.add_to_bag(action)
+            if npc.state_zombie is not NPC_STATES_ZOMBIE.ZOMBIE:
+                for _ in range(amount_to_add): 
+                    npc.add_to_bag(action)
                 
     def add_deployment(self, deployment):
         self.deployments.append(deployment)
@@ -211,6 +212,13 @@ class Neighborhood:
         assert (self.num_npcs == total_count_zombie)
         assert (self.num_npcs == total_count_flu)
 
+    def getPopulation(self): #Alive Humans (Active and Sickly)
+        population = 0
+        for npc in self.NPCs:
+            if npc.state_dead is NPC_STATES_DEAD.ALIVE and npc.state_zombie is not NPC_STATES_ZOMBIE.ZOMBIE:
+                population += 1
+        return population
+    
     def get_data(self):
         self.update_summary_stats()
         neighborhood_data = {'id': self.id,
@@ -236,7 +244,8 @@ class Neighborhood:
         return neighborhood_data
 
     def checkForEvents(self):
-        if (9 <= self.num_alive and 20 >= self.local_fear):
+        population = self.getPopulation() #Number of Alive Humans (Both Active and Sickly) as Zombies are also Alive
+        if (9 <= population and population > self.num_zombie and 20 >= self.local_fear):
             self.gathering_enabled = True
         else:
             self.gathering_enabled = False
