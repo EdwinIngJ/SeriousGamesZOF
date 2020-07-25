@@ -7,15 +7,19 @@ from gym_zgame.envs.enums.PLAYER_ACTIONS import LOCATIONS, DEPLOYMENTS
 class GUI(Frame):
     def __init__(self, root, zgame):
         super().__init__(root)
-        self.root = root
-        print('Starting new game with human play!')
-        self.env = zgame.env
-        self.DATA_LOG_FILE_NAME = zgame.DATA_LOG_FILE_NAME
         self.GAME_ID = zgame.GAME_ID
+        print('Starting new game with human play!')
+        #Variables for tkinter GUI
+        self.root = root
+        #Variables for Game
+        self.env = zgame.env
         self.env.reset()
+        self.DATA_LOG_FILE_NAME = zgame.DATA_LOG_FILE_NAME
         self.turn = zgame.turn
         self.max_turns = zgame.max_turns
-        self.neighborhoods, self.score, self.total_score, self.fear, self.orig_alive, self.orig_dead, self.turn_description_info = self.env.render(mode='human')
+        self.neighborhoods, self.score, self.total_score, self.fear, self.resources, self.orig_alive, self.orig_dead = self.env.render(mode='human')
+        self.temp_data = {}
+        self.turn_description_info = []
         self.deployments_action = []
         self.locations_action = []
         #Constants
@@ -60,11 +64,10 @@ class GUI(Frame):
         #Include city stats
         #Information is what's printed for each neighborhood
         #It should be in the form of [statistic_name, statistc data for neighborhoodNW, N, NE, W, ...
-        information = [["Active"] + [self.env.city.show_data(nbh, nbh.local_fear, nbh.num_active) for nbh in self.neighborhoods],
-            ["Sickly"] + [self.env.city.show_data(nbh, nbh.local_fear, nbh.num_sickly) for nbh in self.neighborhoods],
-            ["Zombies"] + [self.env.city.show_data(nbh, nbh.local_fear, nbh.num_zombie) for nbh in self.neighborhoods],
-            ["Dead"] + [self.env.city.show_data(nbh, nbh.local_fear, nbh.num_dead) for nbh in self.neighborhoods],
-            ["Dead Ashen"] + [self.env.city.show_data(nbh, nbh.local_fear, nbh.num_ashen) for nbh in self.neighborhoods],
+        self.information = [["Active"] + [self.env.city.show_data(nbh.local_fear, nbh.num_active) for nbh in self.neighborhoods],
+            ["Sickly"] + [self.env.city.show_data(nbh.local_fear, nbh.num_sickly) for nbh in self.neighborhoods],
+            ["Zombies"] + [self.env.city.show_data(nbh.local_fear, nbh.num_zombie) for nbh in self.neighborhoods],
+            ["Dead"] + [self.env.city.show_data(nbh.local_fear, nbh.num_dead) for nbh in self.neighborhoods],
             ["Living at Start"] + [nbh.orig_alive for nbh in self.neighborhoods],
             ["Dead at Start"] + [nbh.orig_dead for nbh in self.neighborhoods],
             ["Local Fear"] + [nbh.local_fear for nbh in self.neighborhoods]]
@@ -72,7 +75,7 @@ class GUI(Frame):
         formated_information = []
         for i in range(len(self.neighborhoods)):
             text = ''
-            for elem in information:
+            for elem in self.information:
                 text += '{}: {}'.format(elem[0], elem[i+1]) + '\n'
             formated_information.append(text)
 
@@ -138,15 +141,15 @@ class GUI(Frame):
         if self.turn > 0:
             top = Toplevel()
             top.title('Log')
-            data_log = self.turn_description_info
-            Turn_num = Label(top, text = data_log[-1]["Global"][0], bd = 5)
+            data_log = self.get_turn_desc()
+            Turn_num = Label(top, text = "End of Turn: " + str(data_log[-1]["Global"][0]), bd = 5)
             Turn_num.grid(row=0)
 
             def format_for_grid(nbh_name):
                 var_names = ["Active","Sickly","Zombies","Dead","Living at Start","Dead at Start","Local Fear"]
                 text = ''
                 for i in range(len(data_log[-1][nbh_name])):
-                    text += '{} : {}'.format(var_names[i], data_log[-1][nbh_name][i]) + '\n'
+                    text += '{} : {}       {}'.format(var_names[i], data_log[-1][nbh_name][i], data_log[-1]["delta_"+nbh_name][i] if data_log[-1]["delta_"+nbh_name][i] < 0 else "+" + str(data_log[-1]["delta_"+nbh_name][i])) + '\n'
                 return text
 
             NWest_turn_desc = Label(top, text = format_for_grid(LOCATIONS.NW.name), bd = 5)
@@ -175,10 +178,16 @@ class GUI(Frame):
 
             SEast_turn_desc = Label(top, text = format_for_grid(LOCATIONS.SE.name), bd = 5)
             SEast_turn_desc.grid(row = 3, column = 2)
+
+            action_turn_desc_text = "You deployed {} in {} \n".format(DEPLOYMENTS(data_log[-1]["actions"][0][0]).name,LOCATIONS(data_log[-1]["actions"][1][0]).name)
+            action_turn_desc_text += "You then deployed {} in {}".format(DEPLOYMENTS(data_log[-1]["actions"][0][1]).name,LOCATIONS(data_log[-1]["actions"][1][1]).name)
+            action_turn_desc = Label(top, text = action_turn_desc_text, bd = 5)
+            action_turn_desc.grid(row = 4, column = 0, columnspan = 2)
         else:
             pass
         
     def _do_turn(self):
+        self.temp_data = self._get_turn_desc_data()
         actions = self.env.encode_raw_action(location_1=LOCATIONS(self.locations_action[0]),
                                                  deployment_1=DEPLOYMENTS(self.deployments_action[0]),
                                                  location_2=LOCATIONS(self.locations_action[1]),
@@ -204,12 +213,13 @@ class GUI(Frame):
             self.done()
 
         self.update_screen()
-    
-    def update_screen(self):
-        self.neighborhoods, self.score, self.total_score, self.fear, self.orig_alive, self.orig_dead, self.turn_description_info = self.env.render(mode='human')
-        self.create_screen()
+        self._create_turn_desc(self.temp_data,self._get_turn_desc_data())
         self.deployments_action = []
         self.locations_action = []
+    
+    def update_screen(self):
+        self.neighborhoods, self.score, self.total_score, self.fear, self.resources, self.orig_alive, self.orig_dead = self.env.render(mode='human')
+        self.create_screen()
 
     def done(self):
         print("Episode finished after {} turns".format(self.turn))
@@ -218,3 +228,26 @@ class GUI(Frame):
     def _cleanup(self):
         self.env.close()
             
+    def _get_turn_desc_data(self):
+        #Capture Global Data
+        turn_desc_data = {}
+        turn_desc_data["Global"] = [self.turn, self.total_score,self.fear,self.resources]
+        #Capture Neighborhood Data
+        for i in range(len(self.neighborhoods)):
+            nbh = self.neighborhoods[i]
+            turn_desc_data[nbh.location.name] = [stat[i+1] for stat in self.information]
+        return turn_desc_data
+
+    
+    def _create_turn_desc(self, prev_stats, curr_stats):
+        turn_desc_container = {}
+        #Calculates the changes and adds them to the dictionary along with the statistics for that turn
+        #To add: events
+        for k, v in prev_stats.items():
+            turn_desc_container["delta_"+k] = [curr_stats[k][i]-v[i] for i in range(len(v))]
+        turn_desc_container.update(prev_stats)
+        turn_desc_container.update({"actions" : [self.deployments_action]+[self.locations_action]})
+        self.turn_description_info.append(turn_desc_container)
+
+    def get_turn_desc(self):
+        return self.turn_description_info
