@@ -2,6 +2,7 @@ import json
 import numpy as np
 import random
 import pyfiglet as pf
+import statistics as stat
 from gym_zgame.envs.Print_Colors.PColor import PBack, PFore, PFont, PControl
 from gym_zgame.envs.model.Neighborhood import Neighborhood
 from gym_zgame.envs.model.NPC import NPC
@@ -20,7 +21,6 @@ class City:
         self._init_neighborhood_threats()
         self.fear = 5
         self.resources = 10
-        self.delta_fear = 0
         self.delta_resources = 0
         self.nbh_delta_local_fear_values = None
         self.score = 0
@@ -236,7 +236,6 @@ class City:
 
     def _update_trackers(self):
         # Update fear and resources increments
-        fear_cost_per_turn = 0
         resource_cost_per_turn = 0
         deployments_fear_resource_costs = {
             DEPLOYMENTS.QUARANTINE_FENCED : [1,0],
@@ -263,7 +262,6 @@ class City:
                     if nbh.num_active >= 5:
                         resource_cost_per_turn -= 1
                 elif dep in deployments_fear_resource_costs:
-                    fear_cost_per_turn += deployments_fear_resource_costs[dep][0]
                     resource_cost_per_turn += deployments_fear_resource_costs[dep][1]
                     for local_fear_change_nbh_index in range(len(self.neighborhoods)):
                         if local_fear_change_nbh_index == nbh_index:
@@ -271,24 +269,33 @@ class City:
                         else:
                             local_fear_cost_per_turn[local_fear_change_nbh_index] += deployments_fear_resource_costs[dep][0] * 0.50 #deployments outside the neighborhood only affect fear by 50% than if they were in that neighborhood
         self.nbh_delta_local_fear_values = local_fear_cost_per_turn.copy()
-        self.delta_fear = fear_cost_per_turn
         self.delta_resources = resource_cost_per_turn
 
     def _update_global_states(self):
         self.resources -= self.delta_resources  # remove upkeep resources (includes new deployments)
-        self.fear += self.delta_fear  # increase fear from deployments (includes new deployments)
-        for nbh_index in range(len(self.neighborhoods)):
+        local_fears = [] #List of local fears in each neighborhood
+        for nbh_index in range(len(self.neighborhoods)): # increase local fear for each neighborhood from deployments (includes new deployments)
             nbh = self.neighborhoods[nbh_index]
             nbh.local_fear += int(self.nbh_delta_local_fear_values[nbh_index] + .9)
             if nbh.local_fear < 0:
                 nbh.local_fear = 0
-            print(nbh.local_fear)
+            local_fears.append(nbh.local_fear)
+            
+        average_local_fear = stat.mean(local_fears) #Average of local_fears found with statistics module
+        self.fear = average_local_fear #Global Fear temporarily set to average of all local fears
+        for local_fear in local_fears: #Global Fear influenced by how far each local fear is from average local fear
+            if local_fear < average_local_fear: #If local fear is below average, global fear lowered by .5 * the difference
+                self.fear -= (average_local_fear - local_fear) * .5
+            else: #Otherwise, global fear increased by the difference
+                self.fear += local_fear - average_local_fear 
+        self.fear = int(self.fear+.9)
+        
         if self.fear < 0:
             self.fear = 0
         if self.resources < 0:
             self.resources = 0
             self._destroy_upkeep_deployments()
-
+        
     def _destroy_upkeep_deployments(self):
         for nbh in self.neighborhoods:
             nbh.destroy_deployments_by_type(self.UPKEEP_DEPS)
@@ -689,7 +696,7 @@ class City:
         return city_data
 
     def _mask_visible_data(self, nbh_fear, value):
-            offset_amount = min(.85 * value, int(nbh_fear / 75 * value)) #The offset value
+            offset_amount = min(int(.85 * value), int(nbh_fear / 75 * value)) #The offset value
             return random.randint(value - offset_amount, value + offset_amount)
 
     def show_data(self, nbh_fear, value):
