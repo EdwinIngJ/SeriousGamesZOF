@@ -20,6 +20,7 @@ class GUI(Frame):
         self.neighborhoods, self.score, self.total_score, self.fear, self.resources, self.orig_alive, self.orig_dead = self.env.render(mode='human')
         self.temp_data = {}
         self.turn_description_info = []
+        self.turn_desc_log_index = -1
         self.deployments_action = []
         self.locations_action = []
         #Constants
@@ -142,14 +143,14 @@ class GUI(Frame):
             top = Toplevel()
             top.title('Log')
             data_log = self.get_turn_desc()
-            Turn_num = Label(top, text = "End of Turn: " + str(data_log[-1]["Global"][0]), bd = 5)
+            Turn_num = Label(top, text = "End of Turn: " + str(data_log[self.turn_desc_log_index]["Global"][0]), bd = 5)
             Turn_num.grid(row=0)
 
             def format_for_grid(nbh_name):
                 var_names = ["Active","Sickly","Zombies","Dead","Living at Start","Dead at Start","Local Fear"]
                 text = ''
-                for i in range(len(data_log[-1][nbh_name])):
-                    text += '{} : {}       {}'.format(var_names[i], data_log[-1][nbh_name][i], data_log[-1]["delta_"+nbh_name][i] if data_log[-1]["delta_"+nbh_name][i] < 0 else "+" + str(data_log[-1]["delta_"+nbh_name][i])) + '\n'
+                for i in range(len(data_log[self.turn_desc_log_index][nbh_name])):
+                    text += '{} : {}       {}'.format(var_names[i], data_log[self.turn_desc_log_index][nbh_name][i], data_log[self.turn_desc_log_index]["delta_"+nbh_name][i] if data_log[self.turn_desc_log_index]["delta_"+nbh_name][i] < 0 else "+" + str(data_log[self.turn_desc_log_index]["delta_"+nbh_name][i])) + '\n'
                 return text
 
             NWest_turn_desc = Label(top, text = format_for_grid(LOCATIONS.NW.name), bd = 5)
@@ -179,13 +180,31 @@ class GUI(Frame):
             SEast_turn_desc = Label(top, text = format_for_grid(LOCATIONS.SE.name), bd = 5)
             SEast_turn_desc.grid(row = 3, column = 2)
 
-            action_turn_desc_text = "You deployed {} in {} \n".format(DEPLOYMENTS(data_log[-1]["actions"][0][0]).name,LOCATIONS(data_log[-1]["actions"][1][0]).name)
-            action_turn_desc_text += "You then deployed {} in {}".format(DEPLOYMENTS(data_log[-1]["actions"][0][1]).name,LOCATIONS(data_log[-1]["actions"][1][1]).name)
+            action_turn_desc_text = "You deployed {} in {} \n".format(DEPLOYMENTS(data_log[self.turn_desc_log_index]["actions"][0][0]).name,LOCATIONS(data_log[self.turn_desc_log_index]["actions"][1][0]).name)
+            action_turn_desc_text += "You then deployed {} in {}".format(DEPLOYMENTS(data_log[self.turn_desc_log_index]["actions"][0][1]).name,LOCATIONS(data_log[self.turn_desc_log_index]["actions"][1][1]).name)
             action_turn_desc = Label(top, text = action_turn_desc_text, bd = 5)
             action_turn_desc.grid(row = 4, column = 0, columnspan = 2)
+
+            prev_button = Button(top, text = "Previous", command=lambda: self.prev_log(), bd = 5)
+            prev_button.grid(row = 5, column = 0)
+
+            next_button = Button(top, text = "Next", command=lambda:self.next_log(), bd = 5)
+            next_button.grid(row = 5, column = 1)
+ 
         else:
-            pass
+            self.NotifBar['text'] = "No Turn Description Available"
     
+    def prev_log(self):
+        if len(self.turn_description_info)*-1 < self.turn_desc_log_index:
+            self.turn_desc_log_index -= 1
+            self.open_log()
+    
+    def next_log(self):
+        current_index = self.turn_desc_log_index
+        if current_index < -1:
+            self.turn_desc_log_index += 1
+            self.open_log()
+
     def _get_turn_desc_data(self):
         #Capture Global Data
         turn_desc_data = {}
@@ -238,6 +257,7 @@ class GUI(Frame):
 
         self.update_screen()
         self._create_turn_desc(self.temp_data,self._get_turn_desc_data())
+        self.turn_desc_log_index = -1
         self.deployments_action = []
         self.locations_action = []
     
