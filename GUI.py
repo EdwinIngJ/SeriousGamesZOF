@@ -23,8 +23,8 @@ class GUI():
         self.deployments_action = []
         self.locations_action = []
         #Constants
-        self.HEIGHT = 620
-        self.WIDTH  = 1250
+        self.HEIGHT = 720
+        self.WIDTH  = 1280
         canvas = Canvas(self.root, height= self.HEIGHT, width= self.WIDTH)
         canvas.pack()
         self.create_screen()
@@ -76,6 +76,24 @@ class GUI():
             ["Living at Start"] + [nbh.orig_alive for nbh in self.neighborhoods],
             ["Dead at Start"] + [nbh.orig_dead for nbh in self.neighborhoods],
             ["Local Fear"] + [nbh.local_fear for nbh in self.neighborhoods]]
+        
+        def format_deployments(nbh_index):
+            deployments = [deployment.value for deployment in self.neighborhoods[nbh_index].deployments if deployment.value != 0]
+            max_per_line = 8
+            print(deployments)
+            if len(deployments) < max_per_line:
+                return 'Deployments: ' + str(deployments)
+            else: 
+                num_split = len(deployments) // max_per_line
+                text = ''
+                if len(deployments) % max_per_line==0:
+                    for i in range(num_split):
+                        text += str(deployments[i*max_per_line:(i+1)*max_per_line]) + '\n'
+                else:
+                    for i in range(num_split):
+                        text += str(deployments[i*max_per_line:(i+1)*max_per_line]) + '\n'
+                    text += str(deployments[num_split*max_per_line:])
+                return 'Deployments: ' + text
 
         #Formats the information to display
         formatted_information = []
@@ -83,8 +101,9 @@ class GUI():
             text = ''
             for elem in self.information:
                 text += '{}: {}'.format(elem[0], elem[i+1]) + '\n'
+            text += format_deployments(i)
             formatted_information.append(text)
-
+            
         CityFrame = Frame(self.root, bg = 'gray', bd = 5)
         CityFrame.place(relx = 0.255, rely = 0.13, relwidth = 0.725, relheight = 0.83) #Frame to hold all 9 City labels
 

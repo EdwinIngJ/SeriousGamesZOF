@@ -277,7 +277,6 @@ class City:
             nbh.local_fear += int(self.nbh_delta_local_fear_values[nbh_index] + .9)
             if nbh.local_fear < 0:
                 nbh.local_fear = 0
-            print(nbh.local_fear)
         if self.fear < 0:
             self.fear = 0
         if self.resources < 0:
@@ -684,9 +683,9 @@ class City:
         return city_data
 
     def _mask_visible_data(self, nbh_fear, value):
-            offset_amount = min(.85 * value, int(nbh_fear / 75 * value)) #The offset value
-            new_value = random.randint(value - offset_amount, value + offset_amount)
-            return new_value
+            offset_amount = min(int(.85 * value), int(nbh_fear / 75 * value)) #The offset value
+            return random.randint(value - offset_amount, value + offset_amount)
+            
         
     def show_data(self, nbh_fear, value):
         #Decides which data to show
@@ -698,7 +697,7 @@ class City:
 
     def rl_encode(self):
         # Set up data structure for the state space, must match the ZGameEnv!
-        state = np.zeros(shape=(10, 6 + (self.max_turns * 2)), dtype='uint8')
+        state = np.zeros(shape=(10, 7 + (self.max_turns * 2)), dtype='uint8')
 
         # Set the state information for the global state
         state[0, 0] = int(self.fear)  # Global Fear
@@ -720,8 +719,9 @@ class City:
             state[i + 1, 3] = self._mask_visible_data(nbh.local_fear, nbh_data.get('num_sickly', 0))
             state[i + 1, 4] = self._mask_visible_data(nbh.local_fear, nbh_data.get('num_zombie', 0))
             state[i + 1, 5] = self._mask_visible_data(nbh.local_fear, nbh_data.get('num_dead', 0))
+            state[i + 1, 6] = nbh_data.get('local_fear', 0)
             for j in range(len(nbh.deployments)):
-                state[i + 1, j + 6] = nbh.deployments[j].value
+                state[i + 1, j + 7] = nbh.deployments[j].value
 
         return state
 
