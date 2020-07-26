@@ -51,8 +51,11 @@ class GUI():
 
         #Label for fear counter
         Fear = Label(back_frame, text = ' Fear: {}'.format(self.fear), font = ('Courier', 10))
-        Fear.place(relx =0.75, rely = 0.055, relwidth = 0.239, relheight = 0.05) 
+        Fear.place(relx =0.75, rely = 0.055, relwidth = 0.119, relheight = 0.05)
 
+        #Label for resources
+        Resource = Label(back_frame, text = ' Resource: {}'.format(self.fear), font = ('Courier', 10))
+        Resource.place(relx=0.872, rely=0.055, relwidth=0.117, relheight=0.05)
         #Frame to hold the 25 Deployment buttons
         DeployFrame = Label(back_frame, bg = 'gray', bd = 5)
         DeployFrame.place(relwidth= 0.25, relheight= 0.99) 
