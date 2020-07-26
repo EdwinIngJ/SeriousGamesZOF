@@ -16,6 +16,7 @@ class Neighborhood:
         self.local_fear = 0
         # Transition probabilities
         self.gathering_enabled = False
+        self.panic_enabled = False
         self.checkForEvents()
         self.event_probs = None
         self.compute_event_probs()
@@ -85,6 +86,16 @@ class Neighborhood:
             ]
             for change in changes:
                 self.event_probs[change[0]] += change[1]
+
+        if self.panic_enabled:
+            changes = [
+                ['incubate', .1],
+                ['fight_back', .3],
+                ['bite', .3],
+                ['turn', .3]
+            ]
+            for change in changes:
+                self.event_probs[change[0]] += change[1]
                 
     def compute_baseline_trans_probs(self):
         self.compute_event_probs()
@@ -137,7 +148,7 @@ class Neighborhood:
         for npc in self.NPCs:
             for _ in range(amount_to_add): 
                 npc.add_to_bag(action)
-                
+
     def add_deployment(self, deployment):
         self.deployments.append(deployment)
         
@@ -240,6 +251,10 @@ class Neighborhood:
             self.gathering_enabled = True
         else:
             self.gathering_enabled = False
+        if (9 <= self.num_alive and 50 <= self.local_fear):
+            self.panic_enabled = True
+        else:
+            self.panic_enabled = False
 
 if __name__ == '__main__':
     nb = Neighborhood('CENTER', LOCATIONS.CENTER, (LOCATIONS.N, LOCATIONS.S, LOCATIONS.W, LOCATIONS.E), 10)
