@@ -256,11 +256,11 @@ class Neighborhood:
 
     def checkForEvents(self):
         population = self.getPopulation() #Number of Alive Humans (Both Active and Sickly) as Zombies are also Alive
-        if (9 <= population and population > self.num_zombie and 20 >= self.local_fear):
+        if (9 <= population and population > self.num_zombie and 20 >= self.local_fear): #Conditions for gatherings if more alive humans than zombies, there are atleast 9 alive humans, and fear is below 20
             self.gathering_enabled = True
         else:
             self.gathering_enabled = False
-        if (9 <= self.num_alive and 50 <= self.local_fear):
+        if (20 < self.local_fear and self.num_zombie > population): #Conditions for panic if more zombies than alive humans and if fear above 20
             self.panic_enabled = True
         else:
             self.panic_enabled = False

@@ -578,6 +578,10 @@ class City:
         for nbh in self.neighborhoods:
             if nbh.gathering_enabled:
                 nbh.add_to_all_human_bags(NPC_ACTIONS.STAY, 5)
+            if nbh.panic_enabled:
+                for npc in nbh.NPCs:
+                    if npc.state_zombie is not NPC_STATES_ZOMBIE.ZOMBIE and npc.state_dead is not NPC_STATE_DEAD.DEAD:
+                        self._push_action_bag_add(npc, nbh, 3)
                 
     def process_moves(self):
         # Non-dead, non-zombie people
@@ -805,7 +809,8 @@ class City:
                        ["Living at Start"] + [nbh.orig_alive for nbh in self.neighborhoods],
                        ["Dead at Start"] + [nbh.orig_dead for nbh in self.neighborhoods],
                        ["Local Fear"] + [nbh.local_fear for nbh in self.neighborhoods],
-                       ["Gathering"] + [nbh.gathering_enabled for nbh in self.neighborhoods]]
+                       ["Gathering"] + [nbh.gathering_enabled for nbh in self.neighborhoods],
+                       ["Panic"] + [nbh.panic_enabled for nbh in self.neighborhoods]]
         city = city_status(information)
         fancy_string += city
 
