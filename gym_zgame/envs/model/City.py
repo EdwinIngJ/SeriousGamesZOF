@@ -577,7 +577,7 @@ class City:
     def adjust_bags_for_events(self):
         for nbh in self.neighborhoods:
             if nbh.gathering_enabled:
-                nbh.add_to_all_npc_bags(NPC_ACTIONS.STAY, 5)
+                nbh.add_to_all_human_bags(NPC_ACTIONS.STAY, 5)
                 
     def process_moves(self):
         # Non-dead, non-zombie people
