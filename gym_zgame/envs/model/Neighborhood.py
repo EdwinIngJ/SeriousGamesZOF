@@ -15,6 +15,7 @@ class Neighborhood:
         self.deployments = []
         self.local_fear = 0
         # Transition probabilities
+        self.swarm_enabled = False
         self.gathering_enabled = False
         self.panic_enabled = False
         self.checkForEvents()
@@ -89,13 +90,26 @@ class Neighborhood:
 
         if self.panic_enabled:
             changes = [
-                ['incubate', .1],
-                ['fight_back', .3],
-                ['bite', .3],
-                ['turn', .3]
+                ['incubate', .15],
+                ['fight_back', .2],
+                ['bite', .25],
+                ['turn', .25],
+                ['pneumonia', .1]
             ]
             for change in changes:
                 self.event_probs[change[0]] += change[1]
+
+        if self.swarm_enabled:
+            changes = [
+                ['turn', .2],
+                ['devour', (self.num_zombie / self.num_moving) * 0.5 if self.num_moving > 0 else 0],
+                ['bite', (self.num_zombie / self.num_moving) * 0.5 if self.num_moving > 0 else 0],
+                ['fight_back', self.num_zombie * -0.01],
+                ['collapse', .05],
+                ['rise', .1],
+                ['fumes', self.num_dead * .01],
+                ['pneumonia', .01]
+            ]
                 
     def compute_baseline_trans_probs(self):
         self.compute_event_probs()
@@ -260,10 +274,14 @@ class Neighborhood:
             self.gathering_enabled = True
         else:
             self.gathering_enabled = False
-        if (20 < self.local_fear and self.num_zombie > population): #Conditions for panic if more zombies than alive humans and if fear above 20
+        if (population >= 6 and 20 < self.local_fear and self.num_zombie > population): #Conditions for panic if more zombies than alive humans and if fear above 20
             self.panic_enabled = True
         else:
             self.panic_enabled = False
+        if (self.num_zombie >= 2 * population): #If there's atleast 100% more zombies than alive humans, it can be considered a swarm
+            self.swarm_enabled = True
+        else:
+            self.swarm_enabled = False
 
 if __name__ == '__main__':
     nb = Neighborhood('CENTER', LOCATIONS.CENTER, (LOCATIONS.N, LOCATIONS.S, LOCATIONS.W, LOCATIONS.E), 10)

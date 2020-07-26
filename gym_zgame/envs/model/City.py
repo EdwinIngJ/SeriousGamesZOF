@@ -229,8 +229,12 @@ class City:
         for nbh in self.neighborhoods:
             for dep_index in range(len(nbh.deployments)):
                 dep = nbh.deployments[dep_index]
-                if dep is DEPLOYMENTS.FIREBOMB_BARRAGE:
+                if dep is DEPLOYMENTS.FIREBOMB_BARRAGE: #Firebombs deactivate after 1 turn
                     nbh.deployments[dep_index] = DEPLOYMENTS.FIREBOMB_PRIMED
+            if nbh.swarm_enabled: #If there's a swarm, there's a 1% chance * the number of zombies for a deployment to be destroyed
+                if len(nbh.deployments) > 0 and random.random() < 0.01 * nbh.num_zombie:
+                    nbh.deployments.remove(random.choice(nbh.deployments))
+                
 
     def _update_trackers(self):
         # Update fear and resources increments
@@ -580,7 +584,7 @@ class City:
                 nbh.add_to_all_human_bags(NPC_ACTIONS.STAY, 5)
             if nbh.panic_enabled:
                 for npc in nbh.NPCs:
-                    if npc.state_zombie is not NPC_STATES_ZOMBIE.ZOMBIE and npc.state_dead is not NPC_STATE_DEAD.DEAD:
+                    if npc.state_zombie is not NPC_STATES_ZOMBIE.ZOMBIE and npc.state_dead is not NPC_STATES_DEAD.DEAD:
                         self._push_action_bag_add(npc, nbh, 3)
                 
     def process_moves(self):
@@ -810,7 +814,9 @@ class City:
                        ["Dead at Start"] + [nbh.orig_dead for nbh in self.neighborhoods],
                        ["Local Fear"] + [nbh.local_fear for nbh in self.neighborhoods],
                        ["Gathering"] + [nbh.gathering_enabled for nbh in self.neighborhoods],
-                       ["Panic"] + [nbh.panic_enabled for nbh in self.neighborhoods]]
+                       ["Panic"] + [nbh.panic_enabled for nbh in self.neighborhoods],
+                       ["Swarm"] + [nbh.swarm_enabled for nbh in self.neighborhoods]]
+                
         city = city_status(information)
         fancy_string += city
 
