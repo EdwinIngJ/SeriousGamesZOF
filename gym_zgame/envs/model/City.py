@@ -49,9 +49,6 @@ class City:
         self.num_active = 0
         self.num_sickly = 0
         self.update_summary_stats()
-        self.turn_desc = False
-        self.turn_description_info = []
-        self.temp_data = {}
 
     def _init_neighborhoods(self, loc_npc_range):
         center = Neighborhood('CENTER', LOCATIONS.CENTER,
@@ -181,7 +178,6 @@ class City:
         self.num_sickly = num_sickly
 
     def do_turn(self, actions):
-        self.temp_data = self._get_turn_desc_data()
         loc_1 = actions[0][0]  # Unpack for readability
         dep_1 = actions[0][1]  # Unpack for readability
         loc_2 = actions[1][0]  # Unpack for readability
@@ -212,7 +208,6 @@ class City:
             nbh.local_fear -= 1 if nbh.local_fear > 0 else 0
         self.fear -= 1 if self.fear > 0 else 0
         self.turn += 1
-        self._create_turn_desc(self.temp_data,self._get_turn_desc_data())
         return score, done
 
     def _add_buildings_to_locations(self, nbh_1_index, dep_1, nbh_2_index, dep_2):
@@ -698,7 +693,8 @@ class City:
     def _mask_visible_data(self, nbh_fear, value):
             offset_amount = min(int(.85 * value), int(nbh_fear / 75 * value)) #The offset value
             return random.randint(value - offset_amount, value + offset_amount)
-
+            
+        
     def show_data(self, nbh_fear, value):
         #Decides which data to show
         if self.developer_mode:
@@ -709,7 +705,7 @@ class City:
 
     def rl_encode(self):
         # Set up data structure for the state space, must match the ZGameEnv!
-        state = np.zeros(shape=(10, 6 + (self.max_turns * 2)), dtype='uint8')
+        state = np.zeros(shape=(10, 7 + (self.max_turns * 2)), dtype='uint8')
 
         # Set the state information for the global state
         state[0, 0] = int(self.fear)  # Global Fear
@@ -731,8 +727,9 @@ class City:
             state[i + 1, 3] = self._mask_visible_data(nbh.local_fear, nbh_data.get('num_sickly', 0))
             state[i + 1, 4] = self._mask_visible_data(nbh.local_fear, nbh_data.get('num_zombie', 0))
             state[i + 1, 5] = self._mask_visible_data(nbh.local_fear, nbh_data.get('num_dead', 0))
+            state[i + 1, 6] = nbh_data.get('local_fear', 0)
             for j in range(len(nbh.deployments)):
-                state[i + 1, j + 6] = nbh.deployments[j].value
+                state[i + 1, j + 7] = nbh.deployments[j].value
 
         return state
 
@@ -753,99 +750,7 @@ class City:
         return minimal_report
 
     def human_render(self):
-        # Build up console output
-        header = pf.figlet_format('ZGame Status')
-        fbuffer = PBack.red + '--------------------------------------------------------------------------------------------' + PBack.reset + '\n' + header + \
-                  PBack.red + '********************************************************************************************' + PBack.reset + '\n'
-        ebuffer = PBack.red + '********************************************************************************************' + PBack.reset + '\n' + \
-                  PBack.red + '--------------------------------------------------------------------------------------------' + PBack.reset + '\n'
-
-        fancy_string = PControl.cls + PControl.home + fbuffer
-
-        # Include global stats
-        global_stats = PBack.purple + '#####################################  GLOBAL STATUS  ######################################' + PBack.reset + '\n'
-        global_stats += ' Turn: {0} of {1}'.format(self.turn, self.max_turns).ljust(42) + 'Turn Score: {0} (Total Score: {1})'.format(self.score, self.total_score) + '\n'
-        global_stats += ' Fear: {}'.format(self.fear).ljust(42) + 'Living at Start: {}'.format(self.orig_alive) + '\n'
-        global_stats += ' Resources: {}'.format(self.resources).ljust(42) + 'Dead at Start: {}'.format(self.orig_dead) + '\n'
-        global_stats += PBack.purple + '############################################################################################' + PBack.reset + '\n'
-        fancy_string += global_stats
-
-        # Include city stats
-        def add_under_location_symbol_text(information): #2-D Array of [[statistic_name, data for each neighborhood in one row] for each statistic]
-            text = ""
-            for statistic_type in information:
-                for nbh_information in statistic_type[1:]:
-                    text += PBack.blue + '==' + PBack.reset + ' {}: {}'.format(statistic_type[0], nbh_information).ljust(28)
-                text += PBack.blue + '==' + PBack.reset + '\n'
-            return text
-        def location_line_symbol_text(information): #Array of [top line statistic_name, (data, neighborhood symbol) for each neighborhood in one row]
-            text = ""
-            for nbh_information in information[1:]:
-                text += PBack.blue + '==' + PBack.reset + ' {}: {}'.format(information[0], nbh_information[0]).ljust(23) + \
-                        PFont.bold + PFont.underline + PFore.purple + '{}'.format(nbh_information[1]) + PControl.reset + ' '
-            text += PBack.blue + '==' + PBack.reset + '\n'
-            return text
-        def city_status(information): # 2-D Array of [[statistic_name, data for nbh1, data for nbh2, ...] for each statistic]
-            symbols = ["  ", "(NW)", " (N)", "(NE)", " (W)", " (C)", " (E)", "(SW)", " (S)", "(SE)"]
-            information_top_location_line = [information[0][0]] + [(information[0][i], symbols[i]) for i in range(1,4)]
-            information_top_statistics = [([information[i][0]] + [information[i][j] for j in range(1,4)]) for i in range(1,len(information))]
-            information_center_location_line = [information[0][0]] + [(information[0][i], symbols[i]) for i in range(4,7)]
-            information_center_statistics = [([information[i][0]] + [information[i][j] for j in range(4,7)]) for i in range(1,len(information))]
-            information_bottom_location_line = [information[0][0]] + [(information[0][i], symbols[i]) for i in range(7,10)]
-            information_bottom_statistics = [([information[i][0]] + [information[i][j] for j in range(7,10)]) for i in range(1,len(information))]
-
-            text = PBack.blue + '=====================================  CITY STATUS  ========================================' + PBack.reset + '\n'
-            text += location_line_symbol_text(information_top_location_line)
-            text += add_under_location_symbol_text(information_top_statistics)
-            text += PBack.blue + '============================================================================================' + PBack.reset + '\n'
-            text += location_line_symbol_text(information_center_location_line)
-            text += add_under_location_symbol_text(information_center_statistics)
-            text += PBack.blue + '============================================================================================' + PBack.reset + '\n'
-            text += location_line_symbol_text(information_bottom_location_line)
-            text += add_under_location_symbol_text(information_bottom_statistics)
-            text += PBack.blue + '============================================================================================' + PBack.reset + '\n'
-            return text
-            
-        #Information is what's printed for each neighborhood
-        #It should be in the form of [statistic_name, statistc data for neighborhoodNW, N, NE, W, ...
-
-        information = [["Active"] + [self.show_data(nbh.local_fear, nbh.num_active) for nbh in self.neighborhoods],
-                       ["Sickly"] + [self.show_data(nbh.local_fear, nbh.num_sickly) for nbh in self.neighborhoods],
-                       ["Zombies"] + [self.show_data(nbh.local_fear, nbh.num_zombie) for nbh in self.neighborhoods],
-                       ["Dead"] + [self.show_data(nbh.local_fear, nbh.num_dead) for nbh in self.neighborhoods],
-                       ["Living at Start"] + [nbh.orig_alive for nbh in self.neighborhoods],
-                       ["Dead at Start"] + [nbh.orig_dead for nbh in self.neighborhoods],
-                       ["Local Fear"] + [nbh.local_fear for nbh in self.neighborhoods]]
-        city = city_status(information)
-        fancy_string += city
-
-        # Close out console output
-        fancy_string += ebuffer
-        print(fancy_string)
-        return self.neighborhoods, self.score, self.total_score, self.fear, self.orig_alive, self.orig_dead
-
-    def _get_turn_desc_data(self):
-        self.update_summary_stats()
-        #Capture Global Data
-        turn_desc_data = {}
-        turn_desc_data["Global"] = [self.total_score,self.fear,self.resources]
-        #Capture Neighborhood Data
-        for i in range(len(self.neighborhoods)):
-            nbh = self.neighborhoods[i]
-            turn_desc_data[nbh.location.name] = [nbh.num_active, nbh.num_sickly, nbh.num_zombie, nbh.num_dead, nbh.num_ashen, nbh.local_fear]
-        return turn_desc_data
-
-    def _create_turn_desc(self, prev_stats, curr_stats):
-        turn_container = {}
-        #Calculates the changes and adds them to the dictionary along with the statistics for that turn
-        #To add: local fear, events
-        for k, v in prev_stats.items():
-            turn_container["delta_"+k] = [curr_stats[k][i]-v[i] for i in range(len(v))]
-        turn_container.update(prev_stats)
-        self.turn_description_info.append(turn_container)
-
-    def get_turn_desc(self):
-        return self.turn_description_info
+        return self.neighborhoods, self.score, self.total_score, self.fear, self.resources, self.orig_alive, self.orig_dead
 
     @staticmethod
     def _get_new_location(old_location, npc_action):
