@@ -312,14 +312,14 @@ class GUI():
 
         # Update counter
         self.turn += 1
-        if done:
-            self.done()
-
         self.update_screen()
         self._create_turn_desc(self.temp_data,self._get_turn_desc_data())
         self.turn_desc_log_index = -1
         self.deployments_action = []
         self.locations_action = []
+
+        if done:
+            self.done()
 
     def update_screen(self):
         self.neighborhoods, self.score, self.total_score, self.fear, self.resources, self.orig_alive, self.orig_dead = self.env.render(mode='human')
