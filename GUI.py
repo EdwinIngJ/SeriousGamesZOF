@@ -139,35 +139,41 @@ class GUI():
 
     def add_deployment(self, deployment):
         if self.turn < self.max_turns:
-            #Adds deployments to deployments list cant exceed 2 actions per turn
-            num_d = len(self.deployments_action)
-            num_l = len(self.locations_action)
-            if  num_d == 0:
-                self.deployments_action.append(deployment)
-            elif num_d == 1 and num_l < 2 :
-                self.deployments_action.append(deployment)
-            elif num_d  == 1 and num_l == 2 :
-                self.deployments_action.append(deployment)
-                self._do_turn()
-            print(self.deployments_action)
+            if len(self.deployments_action) < 2:
+                #Adds deployments to deployments list cant exceed 2 actions per turn
+                num_d = len(self.deployments_action)
+                num_l = len(self.locations_action)
+                if  num_d == 0:
+                    self.deployments_action.append(deployment)
+                elif num_d == 1 and num_l < 2 :
+                    self.deployments_action.append(deployment)
+                elif num_d  == 1 and num_l == 2 :
+                    self.deployments_action.append(deployment)
+                    self._do_turn()
+                print(self.deployments_action)
 
-            self.NotifBar['text'] = "Deployment:  " + DEPLOYMENTS(deployment).name
+                self.NotifBar['text'] = "Deployment:  " + DEPLOYMENTS(deployment).name
+            else:
+                self.NotifBar['text'] = "Please select a location."
 
     def add_location(self, location):
         if self.turn < self.max_turns:
-            #Adds locations to locations list cant exceed 2 actions per turn
-            num_d = len(self.deployments_action)
-            num_l = len(self.locations_action)
-            if  num_l == 0:
-                self.locations_action.append(location)
-            elif num_l == 1 and num_d < 2 :
-                self.locations_action.append(location)
-            elif num_l  == 1 and num_d == 2 :
-                self.locations_action.append(location)
-                self._do_turn()
-            print(self.locations_action)
+            if len(self.locations_action) < 2:
+                #Adds locations to locations list cant exceed 2 actions per turn
+                num_d = len(self.deployments_action)
+                num_l = len(self.locations_action)
+                if  num_l == 0:
+                    self.locations_action.append(location)
+                elif num_l == 1 and num_d < 2 :
+                    self.locations_action.append(location)
+                elif num_l  == 1 and num_d == 2 :
+                    self.locations_action.append(location)
+                    self._do_turn()
+                print(self.locations_action)
 
-            self.NotifBar['text'] = " Location: " + LOCATIONS(location).name
+                self.NotifBar['text'] = " Location: " + LOCATIONS(location).name
+            else:
+                self.NotifBar['text'] = "Please select a deployment."
 
     def open_log(self): 
         #Creates the data logs
