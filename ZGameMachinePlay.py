@@ -32,7 +32,7 @@ class ZGame:
         # Game parameters
         self.env = gym.make(self.ENV_NAME)
         self.env.play_type = PLAY_TYPE.MACHINE
-        self.env.render_mode = 'human'
+        self.env.render_mode = 'human-nogui'
         self.env.MAX_TURNS = self.max_turns
         self.model = A2C.load(self.MODEL_FILENAME)
         self.env.reset()
@@ -56,11 +56,11 @@ class ZGame:
     def run(self):
         print('Starting new game with machine play!')
         observation = self.env.reset()
-        self.env.render(mode='human')
+        self.env.render(mode='human-nogui')
         for turn in range(self.max_turns):
             actions, _states = self.model.predict(observation)
             observation, reward, done, info = self.env.step(actions)
-            self.env.render(mode='human')
+            self.env.render(mode='human-nogui')
             self._print_actions(actions)
             print(info)
             # Write action and stuff out to disk.

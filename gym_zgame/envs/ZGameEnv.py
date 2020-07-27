@@ -73,6 +73,8 @@ class ZGame(gym.Env):
     def render(self, mode='human'):
         if self.render_mode == 'human' or mode == 'human':
             return self.city.human_render()
+        elif self.render_mode == 'human-nogui' or mode == 'human-nogui':
+            return self.city.human_render_nogui()
         elif self.render_mode == 'machine' or mode == 'machine':
             return self.city.rl_render()
         else:
