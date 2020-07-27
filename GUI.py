@@ -17,6 +17,7 @@ class GUI():
         self.turn = zgame.turn
         self.max_turns = zgame.max_turns
         self.neighborhoods, self.score, self.total_score, self.fear, self.resources, self.orig_alive, self.orig_dead = self.env.render(mode='human')
+        self.current_events = self.return_events()
         self.temp_data = {}
         self.turn_description_info = []
         self.turn_desc_log_index = -1
@@ -105,6 +106,7 @@ class GUI():
             text = ''
             for elem in self.information:
                 text += '{}: {}'.format(elem[0], elem[i+1]) + '\n'
+            text += 'Events: {}\n'.format(self.current_events[LOCATIONS(i).name])
             text += format_deployments(i)
             formatted_information.append(text)
             
@@ -245,7 +247,12 @@ class GUI():
             action_turn_desc = Label(top, text = action_turn_desc_text, bd = 5)
             action_turn_desc.grid(row = 5, column = 0, columnspan = 2)
 
-            events_turn_desc_text = "Events:"
+            def format_events(events):
+                text = ''
+                for items in events.items():
+                    text += '{}\n'.format(items)
+                return text
+            events_turn_desc_text = "Events:\n{}".format(format_events(data_log[self.turn_desc_log_index]["events"]))
             events_turn_desc = Label(top, text = events_turn_desc_text, bd = 5)
             events_turn_desc.grid(row = 2, column = 4, sticky = N)
 
@@ -289,6 +296,7 @@ class GUI():
             turn_desc_container["delta_"+k] = [curr_stats[k][i]-v[i] for i in range(len(v))]
         turn_desc_container.update(prev_stats)
         turn_desc_container.update({"actions" : [self.deployments_action]+[self.locations_action]})
+        turn_desc_container.update({"events" : self.current_events})
         self.turn_description_info.append(turn_desc_container)
 
     def get_turn_desc(self):
@@ -326,7 +334,31 @@ class GUI():
         if done:
             self.done()
 
+    def return_events(self):
+        self.env.city.update_event_states()
+        events_currently_going_on = {
+            "NW"     : [],
+            "N"      : [],
+            "NE"     : [],
+            "W"      : [],
+            "CENTER" : [],
+            "E"      : [],
+            "SW"     : [],
+            "S"      : [],
+            "SE"     : []   
+            }
+        nbhs = list(events_currently_going_on.keys())
+        for i in range(len(self.neighborhoods)):
+            if self.neighborhoods[i].gathering_enabled:
+                events_currently_going_on[nbhs[i]].append("Gatherings")
+            if self.neighborhoods[i].panic_enabled:
+                events_currently_going_on[nbhs[i]].append("Panic")
+            if self.neighborhoods[i].swarm_enabled:
+                events_currently_going_on[nbhs[i]].append("Swarm")
+        return events_currently_going_on
+    
     def update_screen(self):
+        self.current_events = self.return_events()
         self.neighborhoods, self.score, self.total_score, self.fear, self.resources, self.orig_alive, self.orig_dead = self.env.render(mode='human')
         self.create_screen()
 
