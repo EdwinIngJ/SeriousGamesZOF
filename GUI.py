@@ -327,7 +327,7 @@ class GUI():
             self.done()
 
     def update_screen(self):
-        self.neighborhoods, self.score, self.total_score, self.fear, self.resources, self.orig_alive, self.orig_dead = self.env.render(mode='human')
+        self.neighborhoods, self.score, self.total_score, self.fear, self.resources, self.orig_alive, self.orig_dead, self.current_events = self.env.render(mode='human')
         self.create_screen()
 
     def summary_screen(self):
