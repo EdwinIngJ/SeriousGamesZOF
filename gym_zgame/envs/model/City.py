@@ -487,6 +487,8 @@ class City:
                 if npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE:
                     if random.random() <= fight_back_prob:
                         npc.change_dead_state(NPC_STATES_DEAD.DEAD)
+                        npc.change_zombie_state(NPC_STATES_ZOMBIE.HUMAN)
+                        
                 # Collapse
                 if npc.state_zombie is NPC_STATES_ZOMBIE.ZOMBIE:
                     if random.random() <= collapse_prob:
