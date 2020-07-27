@@ -3,7 +3,6 @@ from gym_zgame.envs.enums.PLAYER_ACTIONS import LOCATIONS, DEPLOYMENTS
 from gym_zgame.envs.enums.NPC_STATES import NPC_STATES_DEAD, NPC_STATES_ZOMBIE, NPC_STATES_FLU
 from gym_zgame.envs.model.NPC import NPC
 
-
 class Neighborhood:
 
     def __init__(self, id, location, adj_locations, num_init_npcs,developer_mode=False):
@@ -14,7 +13,14 @@ class Neighborhood:
         self.adj_locations = adj_locations
         self._npc_init(num_init_npcs)
         self.deployments = []
+        self.local_fear = 5
         # Transition probabilities
+        self.swarm_enabled = False
+        self.gathering_enabled = False
+        self.panic_enabled = False
+        self.checkForEvents()
+        self.event_probs = None
+        self.compute_event_probs()
         self.trans_probs = self.compute_baseline_trans_probs()
         # Keep summary stats up to date for ease
         self.num_npcs = len(self.NPCs)
@@ -31,7 +37,6 @@ class Neighborhood:
         self.num_moving = 0
         self.num_active = 0
         self.num_sickly = 0
-        self.local_fear = 5
         self.update_summary_stats()
         self.orig_alive, self.orig_dead = self._get_original_state_metrics()
 
@@ -55,8 +60,59 @@ class Neighborhood:
         og_alive += self.num_alive
         og_dead += self.num_dead
         return og_alive, og_dead
+    
+    def compute_event_probs(self):
+        self.event_probs = {
+            'burial': 0,
+            'recover': 0,
+            'pneumonia': 0,
+            'incubate': 0,
+            'fumes': 0,
+            'cough': 0,
+            'mutate': 0,
+            'turn': 0,
+            'devour': 0,
+            'bite': 0,
+            'fight_back': 0,
+            'collapse': 0,
+            'rise': 0
+        }
+        if self.gathering_enabled:
+            changes = [#changes to be made to event_multipliers
+                ['cough', .25],
+                ['incubate', .1],
+                ['fight_back', .15],
+                ['devour', -.1],
+                ['bite', .15]
+            ]
+            for change in changes:
+                self.event_probs[change[0]] += change[1]
 
+        if self.panic_enabled:
+            changes = [
+                ['incubate', .15],
+                ['fight_back', .2],
+                ['bite', .25],
+                ['turn', .25],
+                ['pneumonia', .1]
+            ]
+            for change in changes:
+                self.event_probs[change[0]] += change[1]
+
+        if self.swarm_enabled:
+            changes = [
+                ['turn', .2],
+                ['devour', (self.num_zombie / self.num_moving) * 0.5 if self.num_moving > 0 else 0],
+                ['bite', (self.num_zombie / self.num_moving) * 0.5 if self.num_moving > 0 else 0],
+                ['fight_back', self.num_zombie * -0.01],
+                ['collapse', .05],
+                ['rise', .1],
+                ['fumes', self.num_dead * .01],
+                ['pneumonia', .01]
+            ]
+                
     def compute_baseline_trans_probs(self):
+        self.compute_event_probs()
         self.update_summary_stats()
         trans_probs = {
             'burial': (self.num_active / self.num_dead) * 0.1 if self.num_dead > 0 else 0,  # dead -> ashen
@@ -73,6 +129,10 @@ class Neighborhood:
             'collapse': 0.1,  # zombie -> dead
             'rise': 0.1  # dead -> zombie
         }
+        
+        for prob in self.event_probs:
+            trans_probs[prob] = max(min(1, trans_probs[prob] + self.event_probs[prob]), 0)
+            
         return trans_probs
 
     def add_NPC(self, NPC):
@@ -97,10 +157,16 @@ class Neighborhood:
     def clean_all_bags(self):
         for npc in self.NPCs:
             npc.clean_bag(self.location)
-
+            
+    def add_to_all_human_bags(self, action, amount_to_add): #human is misleading as its just non-zombie
+        for npc in self.NPCs:
+            if npc.state_zombie is not NPC_STATES_ZOMBIE.ZOMBIE:
+                for _ in range(amount_to_add): 
+                    npc.add_to_bag(action)
+                
     def add_deployment(self, deployment):
         self.deployments.append(deployment)
-
+        
     def add_deployments(self, deployments):
         self.deployments.extend(deployments)
 
@@ -171,6 +237,13 @@ class Neighborhood:
         assert (self.num_npcs == total_count_zombie)
         assert (self.num_npcs == total_count_flu)
 
+    def getPopulation(self): #Alive Humans (Active and Sickly)
+        population = 0
+        for npc in self.NPCs:
+            if npc.state_dead is NPC_STATES_DEAD.ALIVE and npc.state_zombie is not NPC_STATES_ZOMBIE.ZOMBIE:
+                population += 1
+        return population
+    
     def get_data(self):
         self.update_summary_stats()
         neighborhood_data = {'id': self.id,
@@ -195,6 +268,20 @@ class Neighborhood:
                              'deployments': self.deployments}
         return neighborhood_data
 
+    def checkForEvents(self):
+        population = self.getPopulation() #Number of Alive Humans (Both Active and Sickly) as Zombies are also Alive
+        if (9 <= population and population > self.num_zombie and 20 >= self.local_fear): #Conditions for gatherings if more alive humans than zombies, there are atleast 9 alive humans, and fear is below 20
+            self.gathering_enabled = True
+        else:
+            self.gathering_enabled = False
+        if (population >= 6 and 20 < self.local_fear and self.num_zombie > population): #Conditions for panic if more zombies than alive humans and if fear above 20
+            self.panic_enabled = True
+        else:
+            self.panic_enabled = False
+        if (self.num_zombie >= 2 * population): #If there's atleast 100% more zombies than alive humans, it can be considered a swarm
+            self.swarm_enabled = True
+        else:
+            self.swarm_enabled = False
 
 if __name__ == '__main__':
     nb = Neighborhood('CENTER', LOCATIONS.CENTER, (LOCATIONS.N, LOCATIONS.S, LOCATIONS.W, LOCATIONS.E), 10)
