@@ -62,7 +62,8 @@ class GUI():
 
         ###The 25 Deployment Buttons ###
         for i in range(25):
-            button = Button(DeployFrame, text = DEPLOYMENTS(i).name, font = ('Courier', 7), command=lambda x=i:self.add_deployment(x))
+            text = "{} {}".format(DEPLOYMENTS(i).name.ljust(38), i)
+            button = Button(DeployFrame, text = text, font = ('Courier', 8), command=lambda x=i:self.add_deployment(x), anchor = "w")
             button.place(rely = i * 0.04, relwidth = 1)
             
         self.create_neighborhoods()
@@ -205,34 +206,38 @@ class GUI():
                 var_names = ["Active","Sickly","Zombies","Dead","Living at Start","Dead at Start","Local Fear"]
                 text = ''
                 for i in range(len(data_log[self.turn_desc_log_index][nbh_name])):
-                    text += '{} : {}       {}'.format(var_names[i], data_log[self.turn_desc_log_index][nbh_name][i], data_log[self.turn_desc_log_index]["delta_"+nbh_name][i] if data_log[self.turn_desc_log_index]["delta_"+nbh_name][i] < 0 else "+" + str(data_log[self.turn_desc_log_index]["delta_"+nbh_name][i])) + '\n'
+                    delta = data_log[self.turn_desc_log_index]["delta_"+nbh_name][i] if data_log[self.turn_desc_log_index]["delta_"+nbh_name][i] <= 0 else "+" + str(data_log[self.turn_desc_log_index]["delta_"+nbh_name][i])
+                    if delta == 0:
+                        delta = ''
+                    text += '{}: {}'.format(var_names[i], data_log[self.turn_desc_log_index][nbh_name][i]).ljust(30) 
+                    text += '{} \n'.format(delta)
                 return text
 
-            NWest_turn_desc = Label(top, text = format_for_grid(LOCATIONS.NW.name), bd = 5)
+            NWest_turn_desc = Label(top, text = format_for_grid(LOCATIONS.NW.name), bd = 5, justify = "left")
             NWest_turn_desc.grid(row = 2, column = 0)
 
-            North_turn_desc = Label(top, text = format_for_grid(LOCATIONS.N.name), bd = 5)
+            North_turn_desc = Label(top, text = format_for_grid(LOCATIONS.N.name), bd = 5, justify = "left")
             North_turn_desc.grid(row = 2, column = 1)
 
-            NEast_turn_desc = Label(top, text = format_for_grid(LOCATIONS.NE.name), bd = 5)
+            NEast_turn_desc = Label(top, text = format_for_grid(LOCATIONS.NE.name), bd = 5, justify = "left")
             NEast_turn_desc.grid(row = 2, column = 2)
 
-            West_turn_desc = Label(top, text = format_for_grid(LOCATIONS.W.name), bd = 5)
+            West_turn_desc = Label(top, text = format_for_grid(LOCATIONS.W.name), bd = 5, justify = "left")
             West_turn_desc.grid(row = 3, column = 0)
 
-            Center_turn_desc = Label(top, text = format_for_grid(LOCATIONS.CENTER.name), bd = 5)
+            Center_turn_desc = Label(top, text = format_for_grid(LOCATIONS.CENTER.name), bd = 5, justify = "left")
             Center_turn_desc.grid(row = 3, column = 1)
 
-            East_turn_desc = Label(top, text = format_for_grid(LOCATIONS.E.name), bd = 5)
+            East_turn_desc = Label(top, text = format_for_grid(LOCATIONS.E.name), bd = 5, justify = "left")
             East_turn_desc.grid(row = 3, column = 2)
 
-            SWest_turn_desc = Label(top, text = format_for_grid(LOCATIONS.SW.name), bd = 5)
+            SWest_turn_desc = Label(top, text = format_for_grid(LOCATIONS.SW.name), bd = 5, justify = "left")
             SWest_turn_desc.grid(row = 4, column = 0)
 
-            South_turn_desc = Label(top, text = format_for_grid(LOCATIONS.S.name), bd = 5)
+            South_turn_desc = Label(top, text = format_for_grid(LOCATIONS.S.name), bd = 5, justify = "left")
             South_turn_desc.grid(row = 4, column = 1)
 
-            SEast_turn_desc = Label(top, text = format_for_grid(LOCATIONS.SE.name), bd = 5)
+            SEast_turn_desc = Label(top, text = format_for_grid(LOCATIONS.SE.name), bd = 5, justify = "left")
             SEast_turn_desc.grid(row = 4, column = 2)
 
             action_turn_desc_text = "You deployed {} in {} \n".format(DEPLOYMENTS(data_log[self.turn_desc_log_index]["actions"][0][0]).name,LOCATIONS(data_log[self.turn_desc_log_index]["actions"][1][0]).name)
