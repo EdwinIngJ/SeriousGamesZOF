@@ -17,6 +17,7 @@ class GUI():
         self.turn = zgame.turn
         self.max_turns = zgame.max_turns
         self.neighborhoods, self.score, self.total_score, self.fear, self.resources, self.orig_alive, self.orig_dead = self.env.render(mode='human')
+        self.current_events = self.return_events()
         self.temp_data = {}
         self.turn_description_info = []
         self.turn_desc_log_index = -1
@@ -62,7 +63,8 @@ class GUI():
 
         ###The 25 Deployment Buttons ###
         for i in range(25):
-            button = Button(DeployFrame, text = DEPLOYMENTS(i).name, font = ('Courier', 7), command=lambda x=i:self.add_deployment(x))
+            text = "{} {}".format(DEPLOYMENTS(i).name.ljust(38), i)
+            button = Button(DeployFrame, text = text, font = ('Courier', 8), command=lambda x=i:self.add_deployment(x), anchor = "w")
             button.place(rely = i * 0.04, relwidth = 1)
             
         self.create_neighborhoods()
@@ -104,6 +106,7 @@ class GUI():
             text = ''
             for elem in self.information:
                 text += '{}: {}'.format(elem[0], elem[i+1]) + '\n'
+            text += 'Events: {}\n'.format(self.current_events[LOCATIONS(i).name])
             text += format_deployments(i)
             formatted_information.append(text)
             
@@ -205,34 +208,38 @@ class GUI():
                 var_names = ["Active","Sickly","Zombies","Dead","Living at Start","Dead at Start","Local Fear"]
                 text = ''
                 for i in range(len(data_log[self.turn_desc_log_index][nbh_name])):
-                    text += '{} : {}       {}'.format(var_names[i], data_log[self.turn_desc_log_index][nbh_name][i], data_log[self.turn_desc_log_index]["delta_"+nbh_name][i] if data_log[self.turn_desc_log_index]["delta_"+nbh_name][i] < 0 else "+" + str(data_log[self.turn_desc_log_index]["delta_"+nbh_name][i])) + '\n'
+                    delta = data_log[self.turn_desc_log_index]["delta_"+nbh_name][i] if data_log[self.turn_desc_log_index]["delta_"+nbh_name][i] <= 0 else "+" + str(data_log[self.turn_desc_log_index]["delta_"+nbh_name][i])
+                    if delta == 0:
+                        delta = ''
+                    text += '{}: {}'.format(var_names[i], data_log[self.turn_desc_log_index][nbh_name][i]).ljust(30) 
+                    text += '{} \n'.format(delta)
                 return text
 
-            NWest_turn_desc = Label(top, text = format_for_grid(LOCATIONS.NW.name), bd = 5)
+            NWest_turn_desc = Label(top, text = format_for_grid(LOCATIONS.NW.name), bd = 5, justify = "left")
             NWest_turn_desc.grid(row = 2, column = 0)
 
-            North_turn_desc = Label(top, text = format_for_grid(LOCATIONS.N.name), bd = 5)
+            North_turn_desc = Label(top, text = format_for_grid(LOCATIONS.N.name), bd = 5, justify = "left")
             North_turn_desc.grid(row = 2, column = 1)
 
-            NEast_turn_desc = Label(top, text = format_for_grid(LOCATIONS.NE.name), bd = 5)
+            NEast_turn_desc = Label(top, text = format_for_grid(LOCATIONS.NE.name), bd = 5, justify = "left")
             NEast_turn_desc.grid(row = 2, column = 2)
 
-            West_turn_desc = Label(top, text = format_for_grid(LOCATIONS.W.name), bd = 5)
+            West_turn_desc = Label(top, text = format_for_grid(LOCATIONS.W.name), bd = 5, justify = "left")
             West_turn_desc.grid(row = 3, column = 0)
 
-            Center_turn_desc = Label(top, text = format_for_grid(LOCATIONS.CENTER.name), bd = 5)
+            Center_turn_desc = Label(top, text = format_for_grid(LOCATIONS.CENTER.name), bd = 5, justify = "left")
             Center_turn_desc.grid(row = 3, column = 1)
 
-            East_turn_desc = Label(top, text = format_for_grid(LOCATIONS.E.name), bd = 5)
+            East_turn_desc = Label(top, text = format_for_grid(LOCATIONS.E.name), bd = 5, justify = "left")
             East_turn_desc.grid(row = 3, column = 2)
 
-            SWest_turn_desc = Label(top, text = format_for_grid(LOCATIONS.SW.name), bd = 5)
+            SWest_turn_desc = Label(top, text = format_for_grid(LOCATIONS.SW.name), bd = 5, justify = "left")
             SWest_turn_desc.grid(row = 4, column = 0)
 
-            South_turn_desc = Label(top, text = format_for_grid(LOCATIONS.S.name), bd = 5)
+            South_turn_desc = Label(top, text = format_for_grid(LOCATIONS.S.name), bd = 5, justify = "left")
             South_turn_desc.grid(row = 4, column = 1)
 
-            SEast_turn_desc = Label(top, text = format_for_grid(LOCATIONS.SE.name), bd = 5)
+            SEast_turn_desc = Label(top, text = format_for_grid(LOCATIONS.SE.name), bd = 5, justify = "left")
             SEast_turn_desc.grid(row = 4, column = 2)
 
             action_turn_desc_text = "You deployed {} in {} \n".format(DEPLOYMENTS(data_log[self.turn_desc_log_index]["actions"][0][0]).name,LOCATIONS(data_log[self.turn_desc_log_index]["actions"][1][0]).name)
@@ -240,7 +247,12 @@ class GUI():
             action_turn_desc = Label(top, text = action_turn_desc_text, bd = 5)
             action_turn_desc.grid(row = 5, column = 0, columnspan = 2)
 
-            events_turn_desc_text = "Events:"
+            def format_events(events):
+                text = ''
+                for items in events.items():
+                    text += '{}\n'.format(items)
+                return text
+            events_turn_desc_text = "Events:\n{}".format(format_events(data_log[self.turn_desc_log_index]["events"]))
             events_turn_desc = Label(top, text = events_turn_desc_text, bd = 5)
             events_turn_desc.grid(row = 2, column = 4, sticky = N)
 
@@ -284,6 +296,7 @@ class GUI():
             turn_desc_container["delta_"+k] = [curr_stats[k][i]-v[i] for i in range(len(v))]
         turn_desc_container.update(prev_stats)
         turn_desc_container.update({"actions" : [self.deployments_action]+[self.locations_action]})
+        turn_desc_container.update({"events" : self.current_events})
         self.turn_description_info.append(turn_desc_container)
 
     def get_turn_desc(self):
@@ -321,7 +334,31 @@ class GUI():
         if done:
             self.done()
 
+    def return_events(self):
+        self.env.city.update_event_states()
+        events_currently_going_on = {
+            "NW"     : [],
+            "N"      : [],
+            "NE"     : [],
+            "W"      : [],
+            "CENTER" : [],
+            "E"      : [],
+            "SW"     : [],
+            "S"      : [],
+            "SE"     : []   
+            }
+        nbhs = list(events_currently_going_on.keys())
+        for i in range(len(self.neighborhoods)):
+            if self.neighborhoods[i].gathering_enabled:
+                events_currently_going_on[nbhs[i]].append("Gatherings")
+            if self.neighborhoods[i].panic_enabled:
+                events_currently_going_on[nbhs[i]].append("Panic")
+            if self.neighborhoods[i].swarm_enabled:
+                events_currently_going_on[nbhs[i]].append("Swarm")
+        return events_currently_going_on
+    
     def update_screen(self):
+        self.current_events = self.return_events()
         self.neighborhoods, self.score, self.total_score, self.fear, self.resources, self.orig_alive, self.orig_dead = self.env.render(mode='human')
         self.create_screen()
 
