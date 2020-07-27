@@ -246,7 +246,12 @@ class GUI():
             action_turn_desc = Label(top, text = action_turn_desc_text, bd = 5)
             action_turn_desc.grid(row = 5, column = 0, columnspan = 2)
 
-            events_turn_desc_text = "Events:"
+            def format_events(events):
+                text = ''
+                for items in events.items():
+                    text += '{}\n'.format(items)
+                return text
+            events_turn_desc_text = "Events:\n{}".format(format_events(data_log[self.turn_desc_log_index]["events"]))
             events_turn_desc = Label(top, text = events_turn_desc_text, bd = 5)
             events_turn_desc.grid(row = 2, column = 4, sticky = N)
 
@@ -290,6 +295,7 @@ class GUI():
             turn_desc_container["delta_"+k] = [curr_stats[k][i]-v[i] for i in range(len(v))]
         turn_desc_container.update(prev_stats)
         turn_desc_container.update({"actions" : [self.deployments_action]+[self.locations_action]})
+        turn_desc_container.update({"events" : self.current_events})
         self.turn_description_info.append(turn_desc_container)
 
     def get_turn_desc(self):
