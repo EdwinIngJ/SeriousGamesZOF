@@ -105,6 +105,7 @@ class GUI():
             text = ''
             for elem in self.information:
                 text += '{}: {}'.format(elem[0], elem[i+1]) + '\n'
+            text += 'Events: {}\n'.format(self.current_events[LOCATIONS(i).name])
             text += format_deployments(i)
             formatted_information.append(text)
             
