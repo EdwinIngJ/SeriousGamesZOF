@@ -1,6 +1,6 @@
 import os
 import argparse
-from ZGameMachinePlay import ZGame
+from Data_Gather import ZGame
 
 parser = argparse.ArgumentParser(description='CLI Argument Parser for Machine Playback.')
 parser.add_argument('--outfile', help='Data logging file name.', default='data_log.json')
@@ -21,6 +21,6 @@ if __name__ == '__main__':
     model_name = "rl_agent_v1" ##########
     data_log_file = args.outfile
     os.system('mode con: cols=125 lines=50')
-    for _ in range(10): ###
+    for _ in range(100): ###
         zgame_env = ZGame(model_filename=model_name, data_log_file=data_log_file)
         zgame_env.run()
