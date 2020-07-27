@@ -706,6 +706,28 @@ class City:
                      'original_dead': self.orig_dead}
         return city_data
 
+    def return_events(self):
+        events_currently_going_on = {
+            "NW"     : [],
+            "N"      : [],
+            "NE"     : [],
+            "W"      : [],
+            "CENTER" : [],
+            "E"      : [],
+            "SW"     : [],
+            "S"      : [],
+            "SE"     : []   
+            }
+        nbhs = list(events_currently_going_on.keys())
+        for i in range(len(self.neighborhoods)):
+            if self.neighborhoods[i].gathering_enabled:
+                events_currently_going_on[nbhs[i]].append("Gatherings")
+            if self.neighborhoods[i].panic_enabled:
+                events_currently_going_on[nbhs[i]].append("Panic")
+            if self.neighborhoods[i].swarm_enabled:
+                events_currently_going_on[nbhs[i]].append("Swarm")
+        return events_currently_going_on
+    
     def _mask_visible_data(self, nbh_fear, value):
             offset_amount = min(int(.85 * value), int(nbh_fear / 75 * value)) #The offset value
             return random.randint(value - offset_amount, value + offset_amount)
@@ -717,7 +739,6 @@ class City:
             return value
         else:
             return self._mask_visible_data(nbh_fear, value)
-
 
     def rl_encode(self):
         # Set up data structure for the state space, must match the ZGameEnv!
@@ -766,7 +787,7 @@ class City:
         return minimal_report
 
     def human_render(self):
-        return self.neighborhoods, self.score, self.total_score, self.fear, self.resources, self.orig_alive, self.orig_dead
+        return self.neighborhoods, self.score, self.total_score, self.fear, self.resources, self.orig_alive, self.orig_dead, self.return_events()
 
     @staticmethod
     def _get_new_location(old_location, npc_action):

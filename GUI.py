@@ -16,7 +16,7 @@ class GUI():
         self.DATA_LOG_FILE_NAME = zgame.DATA_LOG_FILE_NAME
         self.turn = zgame.turn
         self.max_turns = zgame.max_turns
-        self.neighborhoods, self.score, self.total_score, self.fear, self.resources, self.orig_alive, self.orig_dead = self.env.render(mode='human')
+        self.neighborhoods, self.score, self.total_score, self.fear, self.resources, self.orig_alive, self.orig_dead, self.current_events = self.env.render(mode='human')
         self.temp_data = {}
         self.turn_description_info = []
         self.turn_desc_log_index = -1
