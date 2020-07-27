@@ -238,11 +238,7 @@ class Neighborhood:
         assert (self.num_npcs == total_count_flu)
 
     def getPopulation(self): #Alive Humans (Active and Sickly)
-        population = 0
-        for npc in self.NPCs:
-            if npc.state_dead is NPC_STATES_DEAD.ALIVE and npc.state_zombie is not NPC_STATES_ZOMBIE.ZOMBIE:
-                population += 1
-        return population
+        return self.num_active + self.num_sickly
     
     def get_data(self):
         self.update_summary_stats()
@@ -274,11 +270,11 @@ class Neighborhood:
             self.gathering_enabled = True
         else:
             self.gathering_enabled = False
-        if (population >= 6 and 20 < self.local_fear and self.num_zombie > population): #Conditions for panic if more zombies than alive humans and if fear above 20
+        if (population >= 6 and 20 < self.local_fear): #Conditions for panic if fear above 20 and there's enough people to start a panic
             self.panic_enabled = True
         else:
             self.panic_enabled = False
-        if (self.num_zombie >= 2 * population): #If there's atleast 100% more zombies than alive humans, it can be considered a swarm
+        if (self.num_zombie > 2 * population): #If there's atleast 100% more zombies than alive humans, it can be considered a swarm
             self.swarm_enabled = True
         else:
             self.swarm_enabled = False

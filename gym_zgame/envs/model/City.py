@@ -221,7 +221,7 @@ class City:
         self._update_trackers()
         self._update_global_states()
         self._update_artificial_states()
-        self._update_event_states()
+        self.update_event_states()
         self._update_natural_states()
         self._update_deployment_states()
 
@@ -364,7 +364,7 @@ class City:
                     elif possible_change[2] == "flu":
                         npc.change_flu_state(possible_change[3])
                         
-    def _update_event_states(self):
+    def update_event_states(self):
         for nbh in self.neighborhoods:
             nbh.checkForEvents()
             
@@ -600,6 +600,10 @@ class City:
         for nbh in self.neighborhoods:
             if nbh.gathering_enabled:
                 nbh.add_to_all_human_bags(NPC_ACTIONS.STAY, 5)
+            if nbh.swarm_enabled:
+                for npc in nbh.NPCs:
+                    if npc.state_zombie is not NPC_STATES_ZOMBIE.ZOMBIE and npc.state_dead is not NPC_STATES_DEAD.DEAD:
+                        self._push_action_bag_add(npc, nbh, 1)
             if nbh.panic_enabled:
                 for npc in nbh.NPCs:
                     if npc.state_zombie is not NPC_STATES_ZOMBIE.ZOMBIE and npc.state_dead is not NPC_STATES_DEAD.DEAD:
@@ -714,27 +718,6 @@ class City:
                      'original_dead': self.orig_dead}
         return city_data
 
-    def return_events(self):
-        events_currently_going_on = {
-            "NW"     : [],
-            "N"      : [],
-            "NE"     : [],
-            "W"      : [],
-            "CENTER" : [],
-            "E"      : [],
-            "SW"     : [],
-            "S"      : [],
-            "SE"     : []   
-            }
-        nbhs = list(events_currently_going_on.keys())
-        for i in range(len(self.neighborhoods)):
-            if self.neighborhoods[i].gathering_enabled:
-                events_currently_going_on[nbhs[i]].append("Gatherings")
-            if self.neighborhoods[i].panic_enabled:
-                events_currently_going_on[nbhs[i]].append("Panic")
-            if self.neighborhoods[i].swarm_enabled:
-                events_currently_going_on[nbhs[i]].append("Swarm")
-        return events_currently_going_on
     
     def _mask_visible_data(self, nbh_fear, value):
             offset_amount = min(int(.85 * value), int(nbh_fear / 75 * value)) #The offset value
@@ -795,7 +778,7 @@ class City:
         return minimal_report
 
     def human_render(self):
-        return self.neighborhoods, self.score, self.total_score, self.fear, self.resources, self.orig_alive, self.orig_dead, self.return_events()
+        return self.neighborhoods, self.score, self.total_score, self.fear, self.resources, self.orig_alive, self.orig_dead
 
     @staticmethod
     def _get_new_location(old_location, npc_action):

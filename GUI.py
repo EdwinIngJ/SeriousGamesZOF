@@ -16,7 +16,8 @@ class GUI():
         self.DATA_LOG_FILE_NAME = zgame.DATA_LOG_FILE_NAME
         self.turn = zgame.turn
         self.max_turns = zgame.max_turns
-        self.neighborhoods, self.score, self.total_score, self.fear, self.resources, self.orig_alive, self.orig_dead, self.current_events = self.env.render(mode='human')
+        self.neighborhoods, self.score, self.total_score, self.fear, self.resources, self.orig_alive, self.orig_dead = self.env.render(mode='human')
+        self.current_events = self.return_events()
         self.temp_data = {}
         self.turn_description_info = []
         self.turn_desc_log_index = -1
@@ -333,8 +334,32 @@ class GUI():
         if done:
             self.done()
 
+    def return_events(self):
+        self.env.city.update_event_states()
+        events_currently_going_on = {
+            "NW"     : [],
+            "N"      : [],
+            "NE"     : [],
+            "W"      : [],
+            "CENTER" : [],
+            "E"      : [],
+            "SW"     : [],
+            "S"      : [],
+            "SE"     : []   
+            }
+        nbhs = list(events_currently_going_on.keys())
+        for i in range(len(self.neighborhoods)):
+            if self.neighborhoods[i].gathering_enabled:
+                events_currently_going_on[nbhs[i]].append("Gatherings")
+            if self.neighborhoods[i].panic_enabled:
+                events_currently_going_on[nbhs[i]].append("Panic")
+            if self.neighborhoods[i].swarm_enabled:
+                events_currently_going_on[nbhs[i]].append("Swarm")
+        return events_currently_going_on
+    
     def update_screen(self):
-        self.neighborhoods, self.score, self.total_score, self.fear, self.resources, self.orig_alive, self.orig_dead, self.current_events = self.env.render(mode='human')
+        self.current_events = self.return_events()
+        self.neighborhoods, self.score, self.total_score, self.fear, self.resources, self.orig_alive, self.orig_dead = self.env.render(mode='human')
         self.create_screen()
 
     def summary_screen(self):
